@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-        'talker = lab1_pkg:main',
+        'talker = lab1_pkg.talker:main',
+        'relay = lab1_pkg.relay:main'
         ],
     },
 )
