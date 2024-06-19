@@ -78,3 +78,5 @@ Note that if you're using Windows, make sure your files have Unix style line end
 - Correctly stops before collision: **30** Points
 - Correctly calculates TTC: **10** Points
 - Able to navigate through the hallway: **10** Points
+
+- https://github.com/f1tenth/f1tenth_gym_ros used for Simulation (note added by Mwesi)
