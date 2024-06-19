@@ -8,6 +8,9 @@ def generate_launch_description():
             namespace='talker',
             executable='talker',
             name='talker'
+            parameters=[
+            {"v": 6.0},
+            {"d": 0.3}
         ),
         Node(
             package='lab1_pkg',
