@@ -23,6 +23,37 @@ public:
         */
 
         /// TODO: create ROS subscribers and publishers
+
+        public:
+          ScanSubscriber()
+          : Node("scan_subscriber")
+          {
+            sub_ = create_subscription<sensor_msgs/LaserScan::msg::float32>(
+            "scan", 10, std::bind(&ScanSubscriber::scan_callback, this, _1));
+          }
+
+        private:
+          void scan_callback(const std_msgs::msg::float32::SharedPtr msg) const
+          {
+            RCLCPP_INFO(this->get_logger(), "Scan: '%f'", msg->data);
+          }
+         rclcpp::Subscription<std_msgs::msg::float32>::SharedPtr subscription_;
+
+
+        public:
+          OdomSubscriber()
+          : Node("odom_subscriber")
+          {
+            sub_ = create_subscription<nav_msgs/Odometry::msg::String>(
+            "/ego_racecar/odom", 10, std::bind(&ScanSubscriber::odom_callback, this, _1));
+          }
+
+        private:
+          void scan_callback(const std_msgs::msg::float32::SharedPtr msg) const
+          {
+            RCLCPP_INFO(this->get_logger(), "Odometry: '%s'", msg->data);
+          }
+         rclcpp::Subscription<std_msgs::msg::float32>::SharedPtr subscription_; 
         
     }
 
