@@ -50,9 +50,21 @@ private:
     {
         /// TODO: update current speed
 
-        RCLCPP_INFO(this->get_logger(), "Odometry: '%s'", msg->data);
+        // Extract linear velocity
+        double linear_velocity_x = msg->twist.twist.linear.x;
+        double linear_velocity_y = msg->twist.twist.linear.y;
+        double linear_velocity_z = msg->twist.twist.linear.z;
+
+        // Extract angular velocity
+        double angular_velocity_x = msg->twist.twist.angular.x;
+        double angular_velocity_y = msg->twist.twist.angular.y;
+        double angular_velocity_z = msg->twist.twist.angular.z;
+
+        // Log the velocities
+        RCLCPP_INFO(this->get_logger(), "Linear Velocity - x: %f, y: %f, z: %f", linear_velocity_x, linear_velocity_y, linear_velocity_z);
+        RCLCPP_INFO(this->get_logger(), "Angular Velocity - x: %f, y: %f, z: %f", angular_velocity_x, angular_velocity_y, angular_velocity_z);
     }
-    rclcpp::Subscription<nav_msgs::msg::Odometry::float32>::SharedPtr subscription_; 
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subscription_;
 
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
     {
