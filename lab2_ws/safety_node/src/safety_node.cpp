@@ -28,15 +28,15 @@ public:
           OdomSubscriber()
           : Node("odom_subscriber")
           {
-            sub_ = create_subscription<nav_msgs::msg::Odometry::String>(
-            "/ego_racecar/odom", 10, std::bind(&ScanSubscriber::odom_callback, this, _1));
+            sub_ = create_subscription<nav_msgs::msg::Odometry::float64>(
+            "/ego_racecar/odom", 36, std::bind(&ScanSubscriber::odom_callback, this, _1));
           }
 
         public:
           ScanSubscriber()
           : Node("scan_subscriber")
           {
-            sub_ = create_subscription<sensor_msgs/LaserScan::msg::float32>(
+            sub_ = create_subscription<sensor_msgs::msg::LaserScan::float32>(
             "scan", 10, std::bind(&ScanSubscriber::scan_callback, this, _1));
           }
         
@@ -50,8 +50,13 @@ private:
     {
         /// TODO: update current speed
 
+        // Create an odometry message
+        //nav_msgs::Odometry odom;
+        //odom.header.frame_id = "odom";
+        //odom.child_frame_id = "base_link";
+
         // Extract linear velocity
-        double linear_velocity_x = msg->twist.twist.linear.x;
+        double linear_velocity_x = msg->twist.twist.linear.x; 
         double linear_velocity_y = msg->twist.twist.linear.y;
         double linear_velocity_z = msg->twist.twist.linear.z;
 
@@ -59,6 +64,8 @@ private:
         double angular_velocity_x = msg->twist.twist.angular.x;
         double angular_velocity_y = msg->twist.twist.angular.y;
         double angular_velocity_z = msg->twist.twist.angular.z;
+
+
 
         // Log the velocities
         RCLCPP_INFO(this->get_logger(), "Linear Velocity - x: %f, y: %f, z: %f", linear_velocity_x, linear_velocity_y, linear_velocity_z);
