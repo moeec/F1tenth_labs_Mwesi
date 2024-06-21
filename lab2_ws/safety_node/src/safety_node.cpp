@@ -24,7 +24,9 @@ public:
 
         /// TODO: create ROS subscribers and publishers
 
-        public:
+        public:nodehandle_(ros::NodeHandle()) ,
+               relative_speed_(0.0),
+
           OdomSubscriber()
           : Node("odom_subscriber")
           {
@@ -49,27 +51,12 @@ private:
     void drive_callback(const nav_msgs::msg::Odometry::ConstSharedPtr msg)
     {
         /// TODO: update current speed
-
-        // Create an odometry message
-        //nav_msgs::Odometry odom;
-        //odom.header.frame_id = "odom";
-        //odom.child_frame_id = "base_link";
-
-        // Extract linear velocity
-        double linear_velocity_x = msg->twist.twist.linear.x; 
-        double linear_velocity_y = msg->twist.twist.linear.y;
-        double linear_velocity_z = msg->twist.twist.linear.z;
-
-        // Extract angular velocity
-        double angular_velocity_x = msg->twist.twist.angular.x;
-        double angular_velocity_y = msg->twist.twist.angular.y;
-        double angular_velocity_z = msg->twist.twist.angular.z;
-
-
+        // Extract relative speed (linear velocity x) is only needed as this is straight ahead he
+        relative_speed_ = -msg->twist.twist.linear.x
 
         // Log the velocities
-        RCLCPP_INFO(this->get_logger(), "Linear Velocity - x: %f, y: %f, z: %f", linear_velocity_x, linear_velocity_y, linear_velocity_z);
-        RCLCPP_INFO(this->get_logger(), "Angular Velocity - x: %f, y: %f, z: %f", angular_velocity_x, angular_velocity_y, angular_velocity_z);
+        RCLCPP_INFO(this->get_logger(), "Speed - x: %f ", relative_speed_);
+        
     }
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subscription_;
 
@@ -80,7 +67,6 @@ private:
         RCLCPP_INFO(this->get_logger(), "Scan: '%f'", msg->data);
     }
     rclcpp::Subscription<sensor_msgs::msg::LaserScan::float32>::SharedPtr subscription_;
-
 
 
 };
