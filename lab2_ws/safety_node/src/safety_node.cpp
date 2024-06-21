@@ -27,6 +27,14 @@ public:
         public:nodehandle_(ros::NodeHandle()) ,
                relative_speed_(0.0),
 
+          Publish() 
+          {
+           //Topics  to publish
+           brake_pub = n_.advertise<std_msgs::Bool>("/brake_bool", 1000);
+           ack_pub = n_.advertise<ackermann_msgs::AckermannDriveStamped>("/brake", 1000);
+          }  
+
+
           OdomSubscriber()
           : Node("odom_subscriber")
           {
@@ -34,7 +42,6 @@ public:
             "/ego_racecar/odom", 36, std::bind(&ScanSubscriber::odom_callback, this, _1));
           }
 
-        public:
           ScanSubscriber()
           : Node("scan_subscriber")
           {
