@@ -11,6 +11,7 @@ class Safety : public rclcpp::Node {
 public:
     Safety() : Node("safety_node")
     {
+
         /*
         You should also subscribe to the /scan topic to get the
         sensor_msgs/LaserScan messages and the /ego_racecar/odom topic to get
@@ -25,32 +26,27 @@ public:
         /// TODO: create ROS subscribers and publishers
 
         ros::NodeHandle n;
-        
 
+        {
+            brake_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/brake_bool", 1000);
+            timer_ = this->create_wall_timer(
+            500ms, std::bind(&safety_node::timer_callback, this));
+        }
 
+        {
+            ackerman_publisher_ = this->create_publisher<ackermann_msgs::msg::Bool>("/brake_bool", 1000);
+            timer_ = this->create_wall_timer(
+           500ms, std::bind(&safety_node::timer_callback, this));
+        }
 
-
-
-
-
-        
-
-          Publish() 
-          {
-           //Topics  to publish
-           brake_pub = n_.advertise<std_msgs::Bool>("/brake_bool", 1000);
-           ack_pub = n_.advertise<ackermann_msgs::AckermannDriveStamped>("/brake", 1000);
-          }  
-
-
-          OdomSubscriber()
+      OdomSubscriber()
           : Node("odom_subscriber")
           {
             sub_ = create_subscription<nav_msgs::msg::Odometry::float64>(
             "/ego_racecar/odom", 36, std::bind(&ScanSubscriber::odom_callback, this, _1));
           }
 
-          ScanSubscriber()
+      ScanSubscriber()
           : Node("scan_subscriber")
           {
             sub_ = create_subscription<sensor_msgs::msg::LaserScan::float32>(
@@ -82,6 +78,18 @@ private:
         RCLCPP_INFO(this->get_logger(), "Scan: '%f'", msg->data);
     }
     rclcpp::Subscription<sensor_msgs::msg::LaserScan::float32>::SharedPtr subscription_;
+
+    void timer_callback()
+    {
+      auto message = std_msgs::msg::String();
+      message.data = "Brake Status is: " + std::to_string(count_++);
+      RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
+      publisher_->publish(message);
+    }
+
+    rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+    size_t count_;
 
 
 };
