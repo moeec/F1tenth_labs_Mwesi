@@ -24,8 +24,16 @@ public:
 
         /// TODO: create ROS subscribers and publishers
 
-        public:nodehandle_(ros::NodeHandle()) ,
-               relative_speed_(0.0),
+        ros::NodeHandle n;
+        
+
+
+
+
+
+
+
+        
 
           Publish() 
           {
