@@ -36,7 +36,7 @@ public:
         {
             ackerman_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("ackermann_topic", 10);
             timer_ = this->create_wall_timer(
-           500ms, std::bind(&safety_node::timer_callback, this));
+            500ms, std::bind(&safety_node::timer_callback, this));
         }
 
         {
