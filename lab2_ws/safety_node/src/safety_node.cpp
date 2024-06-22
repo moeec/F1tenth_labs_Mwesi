@@ -34,24 +34,20 @@ public:
         }
 
         {
-            ackerman_publisher_ = this->create_publisher<ackermann_msgs::msg::Bool>("/brake_bool", 1000);
+            ackerman_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("ackermann_topic", 10);
             timer_ = this->create_wall_timer(
            500ms, std::bind(&safety_node::timer_callback, this));
         }
 
-      OdomSubscriber()
-          : Node("odom_subscriber")
-          {
-            sub_ = create_subscription<nav_msgs::msg::Odometry::float64>(
+        {
+            odom_sub_ = create_subscription<nav_msgs::msg::Odometry::float64>(
             "/ego_racecar/odom", 36, std::bind(&ScanSubscriber::odom_callback, this, _1));
-          }
+        }
 
-      ScanSubscriber()
-          : Node("scan_subscriber")
-          {
-            sub_ = create_subscription<sensor_msgs::msg::LaserScan::float32>(
+        {
+            scan_sub_ = create_subscription<sensor_msgs::msg::LaserScan::float32>(
             "scan", 10, std::bind(&ScanSubscriber::scan_callback, this, _1));
-          }
+        }
         
     }
 
