@@ -33,7 +33,7 @@ public:
         {
             brake_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/brake_bool", 1000);
             timer_ = this->create_wall_timer(
-            500ms, std::bind(&safety_node::timer_callback, this));
+            500ms, std::bind(&safety_node::brake_callback, this));
         }
 
         {
@@ -58,6 +58,19 @@ private:
     double speed = 0.0;
     /// TODO: create ROS subscribers and publishers
 
+
+    
+    void brake_callback(const std_msgs::msg::Bool::SharedPtr msg)
+    {
+        /// Update brake status
+
+        // Log the velocities
+        RCLCPP_INFO(this->get_logger(), "Brake Status is - %s", brake_publisher_ ? "true" : "false");    
+    }
+    rclcpp::Publisher<std_msgs::msg::Bool::SharedPtr brake_publisher_ ;
+    
+    
+     
     void drive_callback(const nav_msgs::msg::Odometry::ConstSharedPtr msg)
     {
         /// TODO: update current speed
@@ -68,7 +81,7 @@ private:
         RCLCPP_INFO(this->get_logger(), "Speed - x: %f ", relative_speed_);
         
     }
-    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subscription_;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
     {
