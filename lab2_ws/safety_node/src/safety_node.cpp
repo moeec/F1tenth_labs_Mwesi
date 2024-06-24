@@ -7,8 +7,8 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 #include <std_msgs/msg/bool.hpp>
-#include <std_msgs/msg/float32.h>
-#include <std_msgs/msg/float64.h>
+#include <std_msgs/msg/float32.hpp>
+#include <std_msgs/msg/float64.hpp>
 
 using namespace std::chrono_literals;
 
@@ -62,14 +62,6 @@ private:
     double speed = 0.0;
     /// TODO: create ROS subscribers and publishers
 
-    /*
-    void brake_callback(const std_msgs::msg::Bool::SharedPtr msg)
-    {
-        /// Update brake status
-        RCLCPP_INFO(this->get_logger(), "Brake Status is - %s", brake_publisher_ ? "true" : "false");    
-    }
-    rclcpp::Publisher<std_msgs::msg::Bool::SharedPtr brake_publisher_ ; */ 
-    
     void brake_callback()
     {
         // Create a message of type std_msgs::msg::Bool
