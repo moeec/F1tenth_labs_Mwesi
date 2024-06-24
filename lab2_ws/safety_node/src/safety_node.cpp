@@ -7,6 +7,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 
+using namespace std::chrono_literals;
 
 class Safety : public rclcpp::Node {
 // The class that handles emergency braking
@@ -28,28 +29,28 @@ public:
 
         /// TODO: create ROS subscribers and publishers
 
-        ros::NodeHandle n;
+        //ros::NodeHandle n;
 
         {
             brake_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/brake_bool", 1000);
             timer_ = this->create_wall_timer(
-            500ms, std::bind(&safety_node::brake_callback, this));
+            500ms, std::bind(&Safety::brake_callback, this));
         }
-
+        
         {
             ackerman_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("ackermann_topic", 10);
             timer_ = this->create_wall_timer(
-            500ms, std::bind(&safety_node::timer_callback, this));
+            500ms, std::bind(&Safety::ackerman_callback, this));
         }
-
+        
         {
-            odom_sub_ = create_subscription<nav_msgs::msg::Odometry::float64>(
-            "/ego_racecar/odom", 36, std::bind(&ScanSubscriber::odom_callback, this, _1));
+            odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry::float64>(
+            "/ego_racecar/odom", 36, std::bind(&Safety::odom_callback, this, _1));
         }
-
+        
         {
-            scan_sub_ = create_subscription<sensor_msgs::msg::LaserScan::float32>(
-            "scan", 10, std::bind(&ScanSubscriber::scan_callback, this, _1));
+            scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan::float32>(
+            "scan", 10, std::bind(&Safety::scan_callback, this, _1));
         }
         
     }
@@ -59,27 +60,40 @@ private:
     /// TODO: create ROS subscribers and publishers
 
 
-    
+    /*
     void brake_callback(const std_msgs::msg::Bool::SharedPtr msg)
     {
         /// Update brake status
-
-        // Log the velocities
         RCLCPP_INFO(this->get_logger(), "Brake Status is - %s", brake_publisher_ ? "true" : "false");    
     }
-    rclcpp::Publisher<std_msgs::msg::Bool::SharedPtr brake_publisher_ ;
+    rclcpp::Publisher<std_msgs::msg::Bool::SharedPtr brake_publisher_ ; */
     
     
-     
+    void brake_callback()
+    {
+        // Create a message of type std_msgs::msg::Bool
+        auto message = std_msgs::msg::bool();
+        
+        // Set the data field to a boolean value
+        message.data = false;  // Assuming starting with false boolean value
+        
+        // Log the message with the correct format
+        RCLCPP_INFO(rclcpp::get_logger("brake_callback"), "Publishing: 'Brake Status is %s'", message.data ? "true" : "false");
+        
+        // Publish the message
+        publisher_->publish(message);
+    }
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr brake_publisher_;
+    
+    
     void drive_callback(const nav_msgs::msg::Odometry::ConstSharedPtr msg)
     {
         /// TODO: update current speed
         // Extract relative speed (linear velocity x) is only needed as this is straight ahead he
-        relative_speed_ = -msg->twist.twist.linear.x
+        relative_speed_ = -msg->twist.twist.linear.x;
 
         // Log the velocities
-        RCLCPP_INFO(this->get_logger(), "Speed - x: %f ", relative_speed_);
-        
+        RCLCPP_INFO(this->get_logger(), "Speed - x: %f",relative_speed_);
     }
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
@@ -89,20 +103,7 @@ private:
 
         RCLCPP_INFO(this->get_logger(), "Scan: '%f'", msg->data);
     }
-    rclcpp::Subscription<sensor_msgs::msg::LaserScan::float32>::SharedPtr subscription_;
-
-    void timer_callback()
-    {
-      auto message = std_msgs::msg::String();
-      message.data = "Brake Status is: " + std::to_string(count_++);
-      RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
-      publisher_->publish(message);
-    }
-
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
-    size_t count_;
-
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan::float32>::SharedPtr scan_sub_;
 
 };
 int main(int argc, char ** argv) {
