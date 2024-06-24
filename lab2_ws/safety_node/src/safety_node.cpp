@@ -6,6 +6,12 @@
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
+#include <std_msgs/msg/bool.h>
+#include <std_msgs/msg/float32.h>
+#include <std_msgs/msg/float64.h>
+
+
+
 
 using namespace std::chrono_literals;
 
@@ -32,7 +38,7 @@ public:
         //ros::NodeHandle n;
 
         {
-            brake_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/brake_bool", 1000);
+            brake_publisher_ = this->create_publisher<std_msgs::msg::bool>("/brake_bool", 1000);
             timer_ = this->create_wall_timer(
             500ms, std::bind(&Safety::brake_callback, this));
         }
@@ -83,7 +89,7 @@ private:
         // Publish the message
         publisher_->publish(message);
     }
-    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr brake_publisher_;
+    rclcpp::Publisher<std_msgs::msg::bool>::SharedPtr brake_publisher_;
     
     
     void drive_callback(const nav_msgs::msg::Odometry::ConstSharedPtr msg)
