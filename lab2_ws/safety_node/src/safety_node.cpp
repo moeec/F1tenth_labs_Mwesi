@@ -34,41 +34,34 @@ public:
 
         //ros::NodeHandle n;
 
+        
+        brake_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/brake_bool", 1000);
+        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("ackermann_topic", 10);
+        
+
+
+        brake_timer_ = this->create_wall_timer(
+            500ms, std::bind(&Safety::brake_callback, this)
+        );
+
+        ackermann_timer_ = this->create_wall_timer(
+            500ms, std::bind(&Safety::ackermann_callback, this)
+        );
+        
         {
-            brake_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/brake_bool", 1000);
-            timer_ = this->create_wall_timer(
-            500ms, std::bind(&Safety::brake_callback, this));
+            odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/ego_racecar/odom", 36, std::bind(&Safety::odom_callback, this, std::placeholders::_1));
         }
         
         {
-            ackerman_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("ackermann_topic", 10);
-            timer_ = this->create_wall_timer(
-            500ms, std::bind(&Safety::ackerman_callback, this));
-        }
-        
-        {
-            odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry::float64>(
-            "/ego_racecar/odom", 36, std::bind(&Safety::odom_callback, this, _1));
-        }
-        
-        {
-            scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan::float32>(
-            "scan", 10, std::bind(&Safety::scan_callback, this, _1));
+            scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
+            "scan", 10, std::bind(&Safety::scan_callback, this, std::placeholders::_1));
         }
         
     }
 
 private:
 
-    /// TODO: create ROS subscribers and publishers
-
-    /*
-    void brake_callback(const std_msgs::msg::Bool::SharedPtr msg)
-    {
-        /// Update brake status
-        RCLCPP_INFO(this->get_logger(), "Brake Status is - %s", brake_publisher_ ? "true" : "false");    
-    }
-    rclcpp::Publisher<std_msgs::msg::Bool::SharedPtr brake_publisher_ ; */ 
     
     void brake_callback()
     {
@@ -82,13 +75,13 @@ private:
         RCLCPP_INFO(rclcpp::get_logger("brake_callback"), "Publishing: 'Brake Status is %s'", message.data ? "true" : "false");
         
         // Publish the message
-        publisher_->publish(message);
+        brake_publisher_->publish(message);
     }
     
-    void ackerman_callback(const ackermann_msgs::msg::AckermannDriveStamped::ConstSharedPtr msg)
+    void ackermann_callback()
     {
 
-        auto message = ackermann_msgs::msg::AckermannDriveStamped;
+        auto message = ackermann_msgs::msg::AckermannDriveStamped();
 
         // code to be added
 
@@ -96,7 +89,7 @@ private:
         RCLCPP_INFO(this->get_logger(), "Ackermann - x: %f",relative_speed_);
     }                   
     
-    void drive_callback(const nav_msgs::msg::Odometry::ConstSharedPtr msg)
+    void odom_callback(const nav_msgs::msg::Odometry::ConstSharedPtr msg)
     {
         /// TODO: update current speed
         // Extract relative speed (linear velocity x) is only needed as this is straight ahead he
@@ -110,14 +103,16 @@ private:
     {
         /// TODO: calculate TTC
 
-        RCLCPP_INFO(this->get_logger(), "Scan: '%f'", msg->data);
+        RCLCPP_INFO(this->get_logger(), "Scan: '%f'", scan_msg);
     }
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackerman_publisher_;
+
+    rclcpp::TimerBase::SharedPtr brake_timer_;
+    rclcpp::TimerBase::SharedPtr ackermann_timer_;
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr brake_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
-    double speed = 0.0;
+    double relative_speed_ = 0.0;
     
 };
 int main(int argc, char ** argv) {
