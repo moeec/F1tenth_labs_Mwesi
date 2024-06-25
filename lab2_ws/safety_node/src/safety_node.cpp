@@ -62,6 +62,14 @@ private:
     double speed = 0.0;
     /// TODO: create ROS subscribers and publishers
 
+    /*
+    void brake_callback(const std_msgs::msg::Bool::SharedPtr msg)
+    {
+        /// Update brake status
+        RCLCPP_INFO(this->get_logger(), "Brake Status is - %s", brake_publisher_ ? "true" : "false");    
+    }
+    rclcpp::Publisher<std_msgs::msg::Bool::SharedPtr brake_publisher_ ; */ 
+    
     void brake_callback()
     {
         // Create a message of type std_msgs::msg::Bool
@@ -95,7 +103,7 @@ private:
 
         RCLCPP_INFO(this->get_logger(), "Scan: '%f'", msg->data);
     }
-    rclcpp::Subscription<sensor_msgs::msg::LaserScan::float32>::SharedPtr scan_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan::Float32>::SharedPtr scan_sub_;
 
 };
 int main(int argc, char ** argv) {
