@@ -59,7 +59,7 @@ public:
     }
 
 private:
-    double speed = 0.0;
+
     /// TODO: create ROS subscribers and publishers
 
     /*
@@ -84,8 +84,18 @@ private:
         // Publish the message
         publisher_->publish(message);
     }
-    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr brake_publisher_;
-                     
+    
+    void ackerman_callback(const ackermann_msgs::msg::AckermannDriveStamped::ConstSharedPtr msg)
+    {
+
+        auto message = ackermann_msgs::msg::AckermannDriveStamped;
+
+        // code to be added
+
+        // Log the velocities
+        RCLCPP_INFO(this->get_logger(), "Ackermann - x: %f",relative_speed_);
+    }                   
+    
     void drive_callback(const nav_msgs::msg::Odometry::ConstSharedPtr msg)
     {
         /// TODO: update current speed
@@ -95,16 +105,20 @@ private:
         // Log the velocities
         RCLCPP_INFO(this->get_logger(), "Speed - x: %f",relative_speed_);
     }
-    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
-
+    
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
     {
         /// TODO: calculate TTC
 
         RCLCPP_INFO(this->get_logger(), "Scan: '%f'", msg->data);
     }
-    rclcpp::Subscription<sensor_msgs::msg::LaserScan::Float32>::SharedPtr scan_sub_;
-
+    rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackerman_publisher_;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr brake_publisher_;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
+    double speed = 0.0;
+    
 };
 int main(int argc, char ** argv) {
     rclcpp::init(argc, argv);
