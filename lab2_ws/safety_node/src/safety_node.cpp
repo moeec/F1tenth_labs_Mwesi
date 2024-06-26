@@ -101,6 +101,8 @@ private:
         /// TODO: update current speed
         // Extract relative speed (linear velocity x) is only needed as this is straight ahead he
         relative_speed_ = -msg->twist.twist.linear.x;
+        double v_x = msg->twist.twist.linear.x;
+        double v_y = msg->twist.twist.linear.y;
 
         // Log the velocities
         RCLCPP_INFO(this->get_logger(), "Speed - x: %f",relative_speed_);
@@ -119,6 +121,8 @@ private:
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr brake_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
+    double TTC_threshold = 0.4;
+    double min_TTC = 100;
     double relative_speed_ = 0.0;
     bool brakenow_;
     
@@ -129,3 +133,9 @@ int main(int argc, char ** argv) {
     rclcpp::shutdown();
     return 0;
 }
+
+
+
+
+
+
