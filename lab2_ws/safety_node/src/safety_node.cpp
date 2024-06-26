@@ -62,14 +62,13 @@ public:
 
 private:
 
-    
     void brake_callback()
     {
         // Create a message of type std_msgs::msg::Bool
         auto message = std_msgs::msg::Bool();
         
         // Set the data field to a boolean value
-        message.data = false;  // Assuming starting with false boolean value
+        message.data = false;  // Assuming starting with false boolean value      
         
         // Log the message with the correct format
         RCLCPP_INFO(rclcpp::get_logger("brake_callback"), "Publishing: 'Brake Status is %s'", message.data ? "true" : "false");
@@ -83,10 +82,18 @@ private:
 
         auto message = ackermann_msgs::msg::AckermannDriveStamped();
 
-        // code to be added
+        if(brakenow_)
+        {
+            message.drive.speed = 0.0;
+  
+        }
 
         // Log the velocities
         RCLCPP_INFO(this->get_logger(), "Ackermann - x: %f",relative_speed_);
+
+        // Publish the message
+        ackermann_publisher_->publish(message);
+
     }                   
     
     void odom_callback(const nav_msgs::msg::Odometry::ConstSharedPtr msg)
@@ -113,6 +120,7 @@ private:
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
     double relative_speed_ = 0.0;
+    bool brakenow_;
     
 };
 int main(int argc, char ** argv) {
