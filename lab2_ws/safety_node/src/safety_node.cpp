@@ -128,10 +128,12 @@ private:
         for (unsigned int i = 0; i < range_measured.size(); i++)
         {
             distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
+            angle_ = scan_msg->sensor_msgs::msg::LaserScan::angle_increment * i;
 
             if (!std::isinf(distance_ && !std::isnan(distance_)))
             {
                RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_); 
+               RCLCPP_INFO(this->get_logger(), "Scan Angle is: '%f'", angle_); 
             }
             else
             {
@@ -154,6 +156,7 @@ private:
     double relative_speed_ = 0.0;
     bool brakenow_;
     double distance_;
+    double angle_;
     
 };
 
