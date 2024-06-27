@@ -124,7 +124,7 @@ private:
             distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
         }
 
-        RCLCPP_INFO(this->get_logger(), "Scan: '%f'", scan_msg);
+        RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_);
     }
 
     rclcpp::TimerBase::SharedPtr brake_timer_;
