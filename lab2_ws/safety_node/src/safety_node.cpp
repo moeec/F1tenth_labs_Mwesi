@@ -124,9 +124,18 @@ private:
         for (unsigned int i = 0; i < range_measured.size(); i++)
         {
             distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
+            if (!std::isinf(distance_ && !std::isnan(distance_))
+            {
+               RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_); 
+            }
+            else
+            {
+                distance_ = 1000;
+                RCLCPP_INFO(this->get_logger(), "Scan Distance is inf or NAN",);
+            }
         }
 
-        RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_);
+        
     }
 
     rclcpp::TimerBase::SharedPtr brake_timer_;
