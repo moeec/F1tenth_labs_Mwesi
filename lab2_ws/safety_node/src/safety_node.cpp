@@ -70,7 +70,14 @@ private:
         auto message = std_msgs::msg::Bool();
         
         // Set the data field to a boolean value
-        message.data = false;  // Assuming starting with false boolean value      
+        message.data = false;  // Assuming starting with false boolean value  
+
+        if(distance_ < 0.05)
+        {
+            message.data = true;
+
+            RCLCPP_INFO(this->get_logger(), "Too Close Brake Event");
+        }    
         
         // Log the message with the correct format
         RCLCPP_INFO(rclcpp::get_logger("brake_callback"), "Publishing: 'Brake Status is %s'", message.data ? "true" : "false");
@@ -138,8 +145,7 @@ private:
             }
 
         }
-
-        
+    
     }
 
     rclcpp::TimerBase::SharedPtr brake_timer_;
