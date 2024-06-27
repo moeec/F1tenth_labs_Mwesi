@@ -118,8 +118,11 @@ private:
     {
         /// TODO: calculate TTC
 
-        distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[0];
 
+        for (unsigned int i = 0; i < scan_msg.ranges.size(); i++)
+        {
+            distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
+        }
 
         RCLCPP_INFO(this->get_logger(), "Scan: '%f'", scan_msg);
     }
