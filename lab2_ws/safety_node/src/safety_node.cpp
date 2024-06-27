@@ -113,12 +113,6 @@ private:
         //double v_x = msg->twist.twist.linear.x;
         //double v_y = msg->twist.twist.linear.y;
 
-        if(distance_ < 0.1)
-        {
-            brakenow_= true;
-
-        }
-
         // Log the velocities
         RCLCPP_INFO(this->get_logger(), "Speed - x: %f",relative_speed_);
     }
