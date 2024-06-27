@@ -91,14 +91,14 @@ private:
 
         auto message = ackermann_msgs::msg::AckermannDriveStamped();
 
-        if(brakenow_)
+        if(brake_publisher_ )
         {
             message.drive.speed = 0.0;
   
         }
 
         // Log the velocities
-        RCLCPP_INFO(this->get_logger(), "Ackermann - x: %f",relative_speed_);
+        RCLCPP_INFO(this->get_logger(), "Ackermann - Speed Input : %f",relative_speed_);
 
         // Publish the message
         ackermann_publisher_->publish(message);
@@ -114,7 +114,7 @@ private:
         //double v_y = msg->twist.twist.linear.y;
 
         // Log the velocities
-        RCLCPP_INFO(this->get_logger(), "Speed - x: %f",relative_speed_);
+        RCLCPP_INFO(this->get_logger(), "Odom - Speed - x: %f",relative_speed_);
     }
     
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
