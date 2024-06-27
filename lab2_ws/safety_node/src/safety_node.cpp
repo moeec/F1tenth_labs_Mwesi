@@ -118,8 +118,10 @@ private:
     {
         /// TODO: calculate TTC
 
+        auto range_measured = scan_msg->sensor_msgs::msg::LaserScan::ranges;
 
-        for (unsigned int i = 0; i < scan_msg.ranges.size(); i++)
+
+        for (unsigned int i = 0; i < range_measured.size(); i++)
         {
             distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
         }
