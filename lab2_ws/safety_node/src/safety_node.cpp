@@ -12,7 +12,8 @@
 
 using namespace std::chrono_literals;
 
-class Safety : public rclcpp::Node {
+class Safety : public rclcpp::Node 
+{
 // The class that handles emergency braking
 
 public:
@@ -61,6 +62,7 @@ public:
     }
 
 private:
+
 
     void brake_callback()
     {
@@ -124,15 +126,17 @@ private:
         for (unsigned int i = 0; i < range_measured.size(); i++)
         {
             distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
-            if (!std::isinf(distance_ && !std::isnan(distance_))
+
+            if (!std::isinf(distance_ && !std::isnan(distance_)))
             {
                RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_); 
             }
             else
             {
                 distance_ = 1000;
-                RCLCPP_INFO(this->get_logger(), "Scan Distance is inf or NAN",);
+                RCLCPP_INFO(this->get_logger(), "Scan Distance is inf or NAN");
             }
+
         }
 
         
@@ -151,7 +155,9 @@ private:
     double distance_;
     
 };
-int main(int argc, char ** argv) {
+
+int main(int argc, char ** argv) 
+{
     rclcpp::init(argc, argv);
     rclcpp::spin(std::make_shared<Safety>());
     rclcpp::shutdown();
