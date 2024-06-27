@@ -76,7 +76,6 @@ private:
         {
             message.data = true;
 
-            RCLCPP_INFO(this->get_logger(), "Too Close Brake Event");
         }    
         
         // Log the message with the correct format
@@ -94,6 +93,8 @@ private:
         if(brake_publisher_ )
         {
             message.drive.speed = 0.0;
+
+            RCLCPP_INFO(this->get_logger(), "Too Close Brake Event");
   
         }
 
