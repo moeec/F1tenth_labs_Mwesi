@@ -71,7 +71,7 @@ private:
         // Set the data field to a boolean value
         message.data = false;  // Assuming starting with false boolean value  
 
-        if(distance_ < 0.005)
+        if(distance_ < 0.001)
         {
             message.data = true;
 
@@ -95,8 +95,8 @@ private:
 
             RCLCPP_INFO(this->get_logger(), "Too Close Brake Event");
 
-            // Pause for 3 seconds
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+            // Pause for 2 seconds
+            std::this_thread::sleep_for(std::chrono::seconds(2));
   
         }
 
@@ -133,7 +133,7 @@ private:
             angle_increment_ = scan_msg->sensor_msgs::msg::LaserScan::angle_increment;
             angle_ = scan_msg->sensor_msgs::msg::LaserScan::angle_min;
             current_angle_= angle_ + angle_increment_ * i;
-            current_angle_degrees_ = current_angle_ * 3.14159265359;
+            current_angle_degrees_ = current_angle_ * (180/3.14159265359);
             speed_derivative_ = cos(angle_) * v_x + sin(angle_) * v_y;                               
 
             if (!std::isinf(distance_ && !std::isnan(distance_)))
