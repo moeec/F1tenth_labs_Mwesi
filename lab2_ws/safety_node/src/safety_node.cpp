@@ -128,7 +128,7 @@ private:
         for (unsigned int i = 0; i < range_measured.size(); i++)
         {
             distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
-            angle_ = scan_msg->sensor_msgs::msg::LaserScan::angle_increment * i;
+            angle_ = scan_msg->sensor_msgs::msg::LaserScan::angle_min + sensor_msgs::msg::LaserScan::angle_increment * i;
 
             if (!std::isinf(distance_ && !std::isnan(distance_)))
             {
