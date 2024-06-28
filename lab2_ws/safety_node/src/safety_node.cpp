@@ -86,7 +86,7 @@ private:
 
         auto message = ackermann_msgs::msg::AckermannDriveStamped();
 
-        if(brake_now_)
+        if(brakenow_)
         {
             message.drive.speed = 0.0;
 
