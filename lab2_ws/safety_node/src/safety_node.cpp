@@ -94,14 +94,10 @@ private:
 
             // Brake for 3 seconds before rechecking
             std::this_thread::sleep_for(std::chrono::seconds(3));
-
-            //exit while loop for check
-            break;
-  
         }
 
         // Log the velocities
-        RCLCPP_INFO(this->get_logger(), "Ackermann - Speed Input : %f",relative_speed_);
+        RCLCPP_INFO(this->get_logger(), "Ackermann - Speed Input : %f",message.drive.speed);
 
         // Publish the message
         ackermann_publisher_->publish(message);
