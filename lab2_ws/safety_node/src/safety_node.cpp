@@ -86,14 +86,14 @@ private:
 
         auto message = ackermann_msgs::msg::AckermannDriveStamped();
 
-        while(brake_publisher_ )
+        if(brake_publisher_ )
         {
             message.drive.speed = 0.0;
 
             RCLCPP_INFO(this->get_logger(), "Too Close Brake Event");
 
-            // Brake for 2 seconds before rechecking
-            std::this_thread::sleep_for(std::chrono::seconds(2));
+            // Brake for 3 seconds before rechecking
+            std::this_thread::sleep_for(std::chrono::seconds(3));
 
             //exit while loop for check
             break;
@@ -142,6 +142,16 @@ private:
                RCLCPP_INFO(this->get_logger(), "Scan Angle(radians) is: '%f'", current_angle_);
                RCLCPP_INFO(this->get_logger(), "Scan Angle(degrees) is: '%f'", current_angle_degrees_);
                RCLCPP_INFO(this->get_logger(), "Speed Derivative is: '%f'", speed_derivative_);  
+
+               // A Start for now
+               if (speed_derivative_ > 0 && distance_ / speed_derivative_ < min_TTC) 
+               {
+                   min_TTC = distance- / speed_derivative_;
+               }
+
+               RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC);  
+
+                
             }
             else
             {
