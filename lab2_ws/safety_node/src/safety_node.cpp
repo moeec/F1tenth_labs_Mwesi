@@ -142,7 +142,7 @@ private:
                // A Start for now
                if (speed_derivative_ > 0 && distance_ / speed_derivative_ < min_TTC) 
                {
-                   min_TTC = distance- / speed_derivative_;
+                   min_TTC = distance_ / speed_derivative_;
                }
 
                RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC);  
