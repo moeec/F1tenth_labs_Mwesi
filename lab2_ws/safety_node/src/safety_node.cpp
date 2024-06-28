@@ -86,7 +86,7 @@ private:
 
         auto message = ackermann_msgs::msg::AckermannDriveStamped();
 
-        if(brake_publisher_ )
+        if(brake_now_)
         {
             message.drive.speed = 0.0;
 
@@ -143,11 +143,16 @@ private:
                if (speed_derivative_ > 0 && distance_ / speed_derivative_ < min_TTC) 
                {
                    min_TTC = distance_ / speed_derivative_;
+                   RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC);  
                }
 
-               RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC);  
-
-                
+               if (min_TTC <= TTC_threshold) 
+               {
+                   // Brake Event here
+                   RCLCPP_INFO(this->get_logger(), "Automatic Emergency Braking Activated TTC = '%f'", min_TTC);
+                   brakenow_= true;
+               }
+  
             }
             else
             {
