@@ -63,7 +63,6 @@ public:
 
 private:
 
-
     void brake_callback()
     {
         // Create a message of type std_msgs::msg::Bool
@@ -90,11 +89,14 @@ private:
 
         auto message = ackermann_msgs::msg::AckermannDriveStamped();
 
-        if(brake_publisher_ )
+        while(brake_publisher_ )
         {
             message.drive.speed = 0.0;
 
             RCLCPP_INFO(this->get_logger(), "Too Close Brake Event");
+
+            // Pause for 3 seconds
+            std::this_thread::sleep_for(std::chrono::seconds(5));
   
         }
 
@@ -115,7 +117,7 @@ private:
         v_y = msg->twist.twist.linear.y;
 
         // Log the velocities
-        RCLCPP_INFO(this->get_logger(), "Odom - Speed - x: %f",relative_speed_);
+        //RCLCPP_INFO(this->get_logger(), "Odom - Speed - x: %f",relative_speed_);
     }
     
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
@@ -128,13 +130,16 @@ private:
         for (unsigned int i = 0; i < range_measured.size(); i++)
         {
             distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
-            angle_ = scan_msg->sensor_msgs::msg::LaserScan::angle_min + sensor_msgs::msg::LaserScan::angle_increment * i;
-            speed_derivative = cos(angle_) * v_x + sin(angle_) * v_y;
+            angle_increment_ = scan_msg->sensor_msgs::msg::LaserScan::angle_increment;
+            angle_ = scan_msg->sensor_msgs::msg::LaserScan::angle_min;
+            current_angle_= angle_ + angle_increment_ * i;
+            speed_derivative_ = cos(angle_) * v_x + sin(angle_) * v_y;                               
 
             if (!std::isinf(distance_ && !std::isnan(distance_)))
             {
                RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_); 
-               RCLCPP_INFO(this->get_logger(), "Scan Angle is: '%f'", angle_); 
+               RCLCPP_INFO(this->get_logger(), "Scan Angle is: '%f'", current_angle_);
+               RCLCPP_INFO(this->get_logger(), "Speed Derivative is: '%f'", speed_derivative_);  
             }
             else
             {
@@ -155,10 +160,12 @@ private:
     double TTC_threshold = 0.4;
     double min_TTC = 100;
     double relative_speed_ = 0.0;
-    double speed_derivative;
+    double speed_derivative_;
     bool brakenow_;
     double distance_;
     double angle_;
+    double angle_increment_;
+    double current_angle_;
     double v_x;
     double v_y;
     
