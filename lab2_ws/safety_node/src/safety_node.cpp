@@ -71,7 +71,7 @@ private:
         // Set the data field to a boolean value
         message.data = false;  // Assuming starting with false boolean value  
 
-        if(distance_ < 0.05)
+        if(distance_ < 0.005)
         {
             message.data = true;
 
@@ -133,12 +133,14 @@ private:
             angle_increment_ = scan_msg->sensor_msgs::msg::LaserScan::angle_increment;
             angle_ = scan_msg->sensor_msgs::msg::LaserScan::angle_min;
             current_angle_= angle_ + angle_increment_ * i;
+            current_angle_degrees_ = current_angle_ * 3.14159265359;
             speed_derivative_ = cos(angle_) * v_x + sin(angle_) * v_y;                               
 
             if (!std::isinf(distance_ && !std::isnan(distance_)))
             {
                RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_); 
-               RCLCPP_INFO(this->get_logger(), "Scan Angle is: '%f'", current_angle_);
+               RCLCPP_INFO(this->get_logger(), "Scan Angle(radians) is: '%f'", current_angle_);
+                RCLCPP_INFO(this->get_logger(), "Scan Angle(degrees) is: '%f'", current_angle_degrees_);
                RCLCPP_INFO(this->get_logger(), "Speed Derivative is: '%f'", speed_derivative_);  
             }
             else
@@ -166,6 +168,7 @@ private:
     double angle_;
     double angle_increment_;
     double current_angle_;
+    double current_angle_degrees_;
     double v_x;
     double v_y;
     
