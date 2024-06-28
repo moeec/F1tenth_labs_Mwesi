@@ -34,12 +34,9 @@ public:
         /// TODO: create ROS subscribers and publishers
 
         //ros::NodeHandle n;
-
         
         brake_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/brake_bool", 1000);
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("ackermann_topic", 10);
-        
-
 
         brake_timer_ = this->create_wall_timer(
             500ms, std::bind(&Safety::brake_callback, this)
@@ -99,7 +96,7 @@ private:
             std::this_thread::sleep_for(std::chrono::seconds(2));
 
             //exit while loop for check
-            brake_publisher_ = false;
+            break;
   
         }
 
