@@ -111,8 +111,8 @@ private:
         /// TODO: update current speed
         // Extract relative speed (linear velocity x) is only needed as this is straight ahead he
         relative_speed_ = -msg->twist.twist.linear.x;
-        //double v_x = msg->twist.twist.linear.x;
-        //double v_y = msg->twist.twist.linear.y;
+        v_x = msg->twist.twist.linear.x;
+        v_y = msg->twist.twist.linear.y;
 
         // Log the velocities
         RCLCPP_INFO(this->get_logger(), "Odom - Speed - x: %f",relative_speed_);
@@ -129,6 +129,7 @@ private:
         {
             distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
             angle_ = scan_msg->sensor_msgs::msg::LaserScan::angle_min + sensor_msgs::msg::LaserScan::angle_increment * i;
+            speed_derivative = cos(angle_) * v_x + sin(angle_) * v_y;
 
             if (!std::isinf(distance_ && !std::isnan(distance_)))
             {
@@ -154,9 +155,12 @@ private:
     double TTC_threshold = 0.4;
     double min_TTC = 100;
     double relative_speed_ = 0.0;
+    double speed_derivative;
     bool brakenow_;
     double distance_;
     double angle_;
+    double v_x;
+    double v_y;
     
 };
 
