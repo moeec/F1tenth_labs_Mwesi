@@ -95,8 +95,11 @@ private:
 
             RCLCPP_INFO(this->get_logger(), "Too Close Brake Event");
 
-            // Pause for 2 seconds
+            // Brake for 2 seconds before rechecking
             std::this_thread::sleep_for(std::chrono::seconds(2));
+
+            //exit while loop for check
+            brake_publisher_ = false;
   
         }
 
@@ -140,7 +143,7 @@ private:
             {
                RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_); 
                RCLCPP_INFO(this->get_logger(), "Scan Angle(radians) is: '%f'", current_angle_);
-                RCLCPP_INFO(this->get_logger(), "Scan Angle(degrees) is: '%f'", current_angle_degrees_);
+               RCLCPP_INFO(this->get_logger(), "Scan Angle(degrees) is: '%f'", current_angle_degrees_);
                RCLCPP_INFO(this->get_logger(), "Speed Derivative is: '%f'", speed_derivative_);  
             }
             else
