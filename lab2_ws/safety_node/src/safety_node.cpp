@@ -118,16 +118,14 @@ private:
     
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
     {
-        /// TODO: calculate TTC
+        /// Calculate instantaneous Time-To-Collision. 
+        /// iTTC=\frac{r}{\lbrace- \dot{r}\rbrace_{+}} 
 
         auto range_measured = scan_msg->sensor_msgs::msg::LaserScan::ranges;
 
-
         for (unsigned int i = 0; i < range_measured.size(); i++)
         {
-
-
-            //instantaneous range measurement(r).
+            // instantaneous range measurement(r).
             distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
 
             angle_increment_ = scan_msg->sensor_msgs::msg::LaserScan::angle_increment;
@@ -137,7 +135,7 @@ private:
             current_angle_= angle_ + angle_increment_ * i;
             current_angle_degrees_ = current_angle_ * (180/3.14159265359);
             
-            // Range rate, indicates how fast the distance  r  is changing (derivative of  r)
+            // Range rate (dot{r}), indicates how fast the distance is changing (derivative of r)
             range_rate_ = cos(angle_) * v_x + sin(angle_) * v_y;                               
 
             if (!std::isinf(distance_ && !std::isnan(distance_)))
@@ -147,8 +145,8 @@ private:
                RCLCPP_INFO(this->get_logger(), "Scan Angle(degrees) is: '%f'", current_angle_degrees_);
                RCLCPP_INFO(this->get_logger(), "Range Rate is: '%f'", range_rate_);  
 
-               // If  range rate is greater than 0, you keep  x . If  x  is less than 0, you use 0 instead.
-               if (range_rate_ > 0 && distance_ / range_rate_ < min_TTC) 
+               // If range rate((dot{r})) is greater than 0, keep (dot{r}) . If (dot{r}) is less than 0, 0 is used.
+               if (range_rate_ > 0 && distance_ / range_rate_ < min_TTC)    
                {
                    min_TTC = distance_ / range_rate_;
                    RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC);  
@@ -158,7 +156,7 @@ private:
                {
                    // Brake Event here
                    RCLCPP_INFO(this->get_logger(), "Automatic Emergency Braking Activated TTC = '%f'", min_TTC);
-                   brakenow_= true;
+                   brakenow_ = true;
                }
                else
                {
