@@ -68,7 +68,7 @@ private:
         // Set the data field to a boolean value
         message.data = false;  // Assuming starting with false boolean value  
 
-        if(distance_ < 0.001)
+        if(brakenow_)
         {
             message.data = true;
 
