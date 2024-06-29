@@ -125,11 +125,19 @@ private:
 
         for (unsigned int i = 0; i < range_measured.size(); i++)
         {
+
+
+            //instantaneous range measurement(r).
             distance_ = scan_msg->sensor_msgs::msg::LaserScan::ranges[i];
+
             angle_increment_ = scan_msg->sensor_msgs::msg::LaserScan::angle_increment;
             angle_ = scan_msg->sensor_msgs::msg::LaserScan::angle_min;
+            
+            // Angle from X that is straight forward to ray projection 
             current_angle_= angle_ + angle_increment_ * i;
             current_angle_degrees_ = current_angle_ * (180/3.14159265359);
+            
+            // Range rate, indicates how fast the distance  r  is changing (derivative of  r)
             speed_derivative_ = cos(angle_) * v_x + sin(angle_) * v_y;                               
 
             if (!std::isinf(distance_ && !std::isnan(distance_)))
