@@ -138,7 +138,7 @@ private:
             // Range rate (dot{r}), indicates how fast the distance is changing (derivative of r)
             range_rate_ = cos(angle_) * v_x + sin(angle_) * v_y;                               
 
-            if (!std::isinf(distance_ && !std::isnan(distance_)))
+            if (!std::isinf(distance_) && !std::isnan(distance_))
             {
                RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_); 
                RCLCPP_INFO(this->get_logger(), "Scan Angle(radians) is: '%f'", current_angle_);
@@ -166,8 +166,7 @@ private:
             }
             else
             {
-                distance_ = 1000;
-                RCLCPP_INFO(this->get_logger(), "Scan Distance is inf or NAN");
+                RCLCPP_WARN(this->get_logger(), "Scan Distance is inf or NaN");
             }
 
         }
@@ -180,8 +179,8 @@ private:
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr brake_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
-    double TTC_threshold = 0.4;
-    double min_TTC = 100;
+    double TTC_threshold = 1.0;
+    double min_TTC = std::numeric_limits<double>::max(); 
     double relative_speed_ = 0.0;
     double range_rate_;
     bool brakenow_;
