@@ -140,10 +140,10 @@ private:
 
             if (!std::isinf(distance_) && !std::isnan(distance_))
             {
-               RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_); 
-               RCLCPP_INFO(this->get_logger(), "Scan Angle(radians) is: '%f'", current_angle_);
-               RCLCPP_INFO(this->get_logger(), "Scan Angle(degrees) is: '%f'", current_angle_degrees_);
-               RCLCPP_INFO(this->get_logger(), "Range Rate is: '%f'", range_rate_);  
+              // RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_); // for debugging
+              // RCLCPP_INFO(this->get_logger(), "Scan Angle(radians) is: '%f'", current_angle_); // for debugging
+              // RCLCPP_INFO(this->get_logger(), "Scan Angle(degrees) is: '%f'", current_angle_degrees_); // for debugging
+              // RCLCPP_INFO(this->get_logger(), "Range Rate is: '%f'", range_rate_); // for debugging 
 
                // If range rate((dot{r})) is greater than 0, keep (dot{r}) . If (dot{r}) is less than 0, 0 is used.
                if (range_rate_ > 0 && distance_ / range_rate_ < min_TTC)    
