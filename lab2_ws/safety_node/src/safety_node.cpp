@@ -138,19 +138,19 @@ private:
             current_angle_degrees_ = current_angle_ * (180/3.14159265359);
             
             // Range rate, indicates how fast the distance  r  is changing (derivative of  r)
-            speed_derivative_ = cos(angle_) * v_x + sin(angle_) * v_y;                               
+            range_rate_ = cos(angle_) * v_x + sin(angle_) * v_y;                               
 
             if (!std::isinf(distance_ && !std::isnan(distance_)))
             {
                RCLCPP_INFO(this->get_logger(), "Scan Distance is: '%f'", distance_); 
                RCLCPP_INFO(this->get_logger(), "Scan Angle(radians) is: '%f'", current_angle_);
                RCLCPP_INFO(this->get_logger(), "Scan Angle(degrees) is: '%f'", current_angle_degrees_);
-               RCLCPP_INFO(this->get_logger(), "Speed Derivative is: '%f'", speed_derivative_);  
+               RCLCPP_INFO(this->get_logger(), "Range Rate is: '%f'", range_rate_);  
 
-               // A Start for now
-               if (speed_derivative_ > 0 && distance_ / speed_derivative_ < min_TTC) 
+               // If  range rate is greater than 0, you keep  x . If  x  is less than 0, you use 0 instead.
+               if (range_rate_ > 0 && distance_ / range_rate_ < min_TTC) 
                {
-                   min_TTC = distance_ / speed_derivative_;
+                   min_TTC = distance_ / range_rate_;
                    RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC);  
                }
 
@@ -159,6 +159,10 @@ private:
                    // Brake Event here
                    RCLCPP_INFO(this->get_logger(), "Automatic Emergency Braking Activated TTC = '%f'", min_TTC);
                    brakenow_= true;
+               }
+               else
+               {
+                   brakenow_ = false;
                }
   
             }
@@ -181,7 +185,7 @@ private:
     double TTC_threshold = 0.4;
     double min_TTC = 100;
     double relative_speed_ = 0.0;
-    double speed_derivative_;
+    double range_rate_;
     bool brakenow_;
     double distance_;
     double angle_;
