@@ -38,9 +38,9 @@ public:
         brake_publisher_ = this->create_publisher<std_msgs::msg::Bool>("/brake_bool", 1000);
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("ackermann_topic", 10);
 
-        brake_timer_ = this->create_wall_timer(
+        /*brake_timer_ = this->create_wall_timer(
             500ms, std::bind(&Safety::brake_callback, this)
-        );
+        );*/
 
         ackermann_timer_ = this->create_wall_timer(
             500ms, std::bind(&Safety::ackermann_callback, this)
@@ -60,7 +60,7 @@ public:
 
 private:
 
-    void brake_callback()
+  /*  void brake_callback()
     {
         // Create a message of type std_msgs::msg::Bool
         auto message = std_msgs::msg::Bool();
@@ -81,7 +81,7 @@ private:
         
         // Publish the message
         brake_publisher_->publish(message);
-    }
+    } */
     
     void ackermann_callback()
     {
