@@ -151,7 +151,7 @@ private:
                if (range_rate_ > 0)    
                {
                    min_TTC = distance_ / range_rate_;
-                   RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC);
+                   //RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC); // for debug
                    if (min_TTC <= TTC_threshold) 
                    {
                        // Brake Event here
