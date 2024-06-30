@@ -159,6 +159,18 @@ private:
                        RCLCPP_INFO(this->get_logger(), "Automatic Emergency Braking Activated TTC = '%f'", min_TTC);
                        brakenow_ = true;
 
+                      
+                        //experimental
+                       std_msgs::Bool msg_bool;
+                       msg_bool.data = true;
+
+                      ackermann_msgs::AckermannDriveStamped msg_brake;
+                      msg_brake.drive.speed = 0.f;
+
+                      publish_bool.publish(msg_bool);
+                      publish_ackermann.publish(msg_brake);
+                       
+
                         for (int j = 0; j < 1000; j++)
                         {
                             ackermann_drive.drive.speed = 0.0;
