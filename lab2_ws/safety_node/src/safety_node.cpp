@@ -138,7 +138,7 @@ private:
             current_angle_degrees_ = current_angle_ * (180/3.14159265359);
             
             // Range rate (dot{r}), indicates how fast the distance is changing (derivative of r)
-            range_rate_ = cos(angle_) * v_x + sin(angle_) * v_y;                               
+            range_rate_ = cos(current_angle_) * v_x + sin(current_angle_) * v_y;                               
 
             if (!std::isinf(distance_) && !std::isnan(distance_))
             {
