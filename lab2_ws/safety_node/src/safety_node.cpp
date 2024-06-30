@@ -88,7 +88,7 @@ private:
 
         auto message = ackermann_msgs::msg::AckermannDriveStamped();
 
-        if(brakenow_)
+       /* if(brakenow_)
         {
             message.drive.speed = 0.0;
 
@@ -96,7 +96,7 @@ private:
 
             // Brake for 3 seconds before rechecking
             std::this_thread::sleep_for(std::chrono::seconds(3));
-        }
+        }*/
 
         // Log the velocities
         RCLCPP_INFO(this->get_logger(), "Ackermann - Speed Input : %f",message.drive.speed);
@@ -124,6 +124,7 @@ private:
         /// iTTC=\frac{r}{\lbrace- \dot{r}\rbrace_{+}} 
 
         auto range_measured = scan_msg->sensor_msgs::msg::LaserScan::ranges;
+        auto ackermann_drive = ackermann_msgs::msg::AckermannDriveStamped();
 
         for (unsigned int i = 0; i < range_measured.size(); i++)
         {
@@ -157,6 +158,7 @@ private:
                        // Brake Event here
                        RCLCPP_INFO(this->get_logger(), "Automatic Emergency Braking Activated TTC = '%f'", min_TTC);
                        brakenow_ = true;
+                       ackermann_drive.drive.speed = 0.0;
                    }
                }
 
