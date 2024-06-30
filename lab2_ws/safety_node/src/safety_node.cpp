@@ -71,11 +71,13 @@ private:
         if(brakenow_)
         {
             message.data = true;
-
-        }    
-        
-        // Log the message with the correct format
-        RCLCPP_INFO(rclcpp::get_logger("brake_callback"), "Publishing: 'Brake Status is %s'", message.data ? "true" : "false");
+            RCLCPP_INFO(rclcpp::get_logger("brake_callback"), "Publishing: 'Brake Status is %s'", message.data ? "true" : "false");
+        }
+        else
+        {
+            // Log the message with the correct format
+            RCLCPP_INFO(rclcpp::get_logger("brake_callback"), "Publishing: 'Brake Status is %s'", message.data ? "true" : "false");
+        }
         
         // Publish the message
         brake_publisher_->publish(message);
