@@ -159,6 +159,8 @@ private:
                        RCLCPP_INFO(this->get_logger(), "Automatic Emergency Braking Activated TTC = '%f'", min_TTC);
                        brakenow_ = true;
                        ackermann_drive.drive.speed = 0.0;
+                       // Brake for 3 seconds before rechecking
+                       std::this_thread::sleep_for(std::chrono::seconds(3));
                    }
                }
 
