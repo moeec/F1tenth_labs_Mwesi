@@ -151,15 +151,15 @@ private:
                if (range_rate_ > 0)    
                {
                    min_TTC = distance_ / range_rate_;
-                   RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC);  
+                   RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC);
+                   if (min_TTC <= TTC_threshold) 
+                   {
+                       // Brake Event here
+                       RCLCPP_INFO(this->get_logger(), "Automatic Emergency Braking Activated TTC = '%f'", min_TTC);
+                       brakenow_ = true;
+                   }
                }
 
-               if (min_TTC <= TTC_threshold) 
-               {
-                   // Brake Event here
-                   RCLCPP_INFO(this->get_logger(), "Automatic Emergency Braking Activated TTC = '%f'", min_TTC);
-                   brakenow_ = true;
-               }
                else
                {
                    brakenow_ = false;
