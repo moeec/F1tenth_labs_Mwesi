@@ -158,11 +158,12 @@ private:
                        // Brake Event here
                        RCLCPP_INFO(this->get_logger(), "Automatic Emergency Braking Activated TTC = '%f'", min_TTC);
                        brakenow_ = true;
-                       ackermann_drive.drive.speed = 0.0;
-                       brake_publisher_(true);
-                       
-                       // Brake for 3 seconds before rechecking
-                       std::this_thread::sleep_for(std::chrono::seconds(3));
+
+                        for (int j = 0; j < 1000; j++)
+                        {
+                            ackermann_drive.drive.speed = 0.0;
+                            std::this_thread::sleep_for(std::chrono::milliseconds(3)); // Sleep for a short duration
+                        }
                    }
                }
 
