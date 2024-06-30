@@ -148,7 +148,7 @@ private:
               // RCLCPP_INFO(this->get_logger(), "Range Rate is: '%f'", range_rate_); // for debugging 
 
                // If range rate((dot{r})) is greater than 0, keep (dot{r}) . If (dot{r}) is less than 0, 0 is used.
-               if (range_rate_ > 0 && distance_ / range_rate_ < min_TTC)    
+               if (range_rate_ > 0)    
                {
                    min_TTC = distance_ / range_rate_;
                    RCLCPP_INFO(this->get_logger(), "Minimum Time to Collision is: '%f'", min_TTC);  
