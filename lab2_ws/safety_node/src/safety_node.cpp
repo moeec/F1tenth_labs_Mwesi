@@ -161,16 +161,14 @@ private:
 
                       
                        //experimental
-                      ackermann_msgs::AckermannDriveStamped msg_brake;
-                      msg_brake.drive.speed = 0.f;
-
                       brake_publisher_.publish(brakenow_);
-                      ackermann_publisher_.publish(msg_brake);
+                      
                        
 
                         for (int j = 0; j < 1000; j++)
                         {
                             ackermann_drive.drive.speed = 0.0;
+                            ackermann_publisher_.publish(ackermann_drive.drive.speed);
                             std::this_thread::sleep_for(std::chrono::milliseconds(3)); // Sleep for a short duration
                         }
                    }
