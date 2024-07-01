@@ -160,10 +160,7 @@ private:
                        brakenow_ = true;
 
                       
-                        //experimental
-                      std_msgs::Bool msg_bool;
-                      msg_bool.data = true;
-
+                       //experimental
                       ackermann_msgs::AckermannDriveStamped msg_brake;
                       msg_brake.drive.speed = 0.f;
 
