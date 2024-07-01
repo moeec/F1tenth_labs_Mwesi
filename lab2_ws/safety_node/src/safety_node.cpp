@@ -189,7 +189,7 @@ private:
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr brake_publisher_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
-    double TTC_threshold = 1.0;
+    double TTC_threshold = 2.0;
     double min_TTC = std::numeric_limits<double>::max(); 
     double relative_speed_ = 0.0;
     double range_rate_;
