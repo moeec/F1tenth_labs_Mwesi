@@ -163,7 +163,6 @@ private:
                         for (int j = 0; j < 1000; j++)
                         {
                             ackermann_drive.drive.speed = 0.0;
-                            ackermann_publisher_.publish(ackermann_drive.drive.speed);
                             std::this_thread::sleep_for(std::chrono::milliseconds(3)); // Sleep for a short duration
                         }
                    }
