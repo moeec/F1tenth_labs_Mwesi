@@ -56,6 +56,7 @@ private:
             if ((this->now() - brake_start_time_).seconds() >= 5.0)
             {
                 braking_ = false;
+                message.drive.speed = 0.0;
                 RCLCPP_INFO(this->get_logger(), "Resuming normal operation.");
             }
         }
