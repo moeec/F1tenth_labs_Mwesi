@@ -88,7 +88,7 @@ private:
 
         auto message = ackermann_msgs::msg::AckermannDriveStamped();
 
-       /* if(brakenow_)
+        if(brakenow_)
         {
             message.drive.speed = 0.0;
 
@@ -96,7 +96,7 @@ private:
 
             // Brake for 3 seconds before rechecking
             std::this_thread::sleep_for(std::chrono::seconds(3));
-        }*/
+        }
 
         // Log the velocities
         RCLCPP_INFO(this->get_logger(), "Ackermann - Speed Input : %f",message.drive.speed);
