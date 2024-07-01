@@ -161,14 +161,14 @@ private:
 
                       
                         //experimental
-                       std_msgs::Bool msg_bool;
-                       msg_bool.data = true;
+                      std_msgs::Bool msg_bool;
+                      msg_bool.data = true;
 
                       ackermann_msgs::AckermannDriveStamped msg_brake;
                       msg_brake.drive.speed = 0.f;
 
-                      publish_bool.publish(msg_bool);
-                      publish_ackermann.publish(msg_brake);
+                      brake_publisher_.publish(brakenow_);
+                      ackermann_publisher_.publish(msg_brake);
                        
 
                         for (int j = 0; j < 1000; j++)
