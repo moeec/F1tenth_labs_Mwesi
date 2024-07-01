@@ -60,7 +60,7 @@ public:
 
 private:
 
-  /*  void brake_callback()
+    void brake_callback()
     {
         // Create a message of type std_msgs::msg::Bool
         auto message = std_msgs::msg::Bool();
@@ -81,7 +81,7 @@ private:
         
         // Publish the message
         brake_publisher_->publish(message);
-    } */
+    } 
     
     void ackermann_callback()
     {
@@ -158,11 +158,6 @@ private:
                        // Brake Event here
                        RCLCPP_INFO(this->get_logger(), "Automatic Emergency Braking Activated TTC = '%f'", min_TTC);
                        brakenow_ = true;
-
-                      
-                       //experimental
-                      brake_publisher_.publish(brakenow_);
-                      
                        
 
                         for (int j = 0; j < 1000; j++)
