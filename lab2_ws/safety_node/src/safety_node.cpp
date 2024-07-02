@@ -29,7 +29,7 @@ public:
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
 
         ackermann_timer_ = this->create_wall_timer(
-            500ms, std::bind(&Safety::ackermann_callback, this)
+            50ms, std::bind(&Safety::ackermann_callback, this)
         );
         
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
