@@ -59,6 +59,12 @@ private:
                 message.drive.speed = 0.0;
                 RCLCPP_INFO(this->get_logger(), "Resuming normal operation.");
             }
+            else
+            {
+                // Set speed to 0 or previous speed before braking
+                message.drive.speed = 0.0; // or set to the last known safe speed
+                brake_publisher_->publish(std_msgs::msg::Bool().set__data(false));
+            }
         }
 
         // Log the velocities
