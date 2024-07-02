@@ -90,7 +90,9 @@ private:
 
             if (!std::isinf(distance_) && !std::isnan(distance_))
             {
-                if (range_rate_ > 0)    
+                
+                if(range_rate_ > 0 && distance_ / range_rate_ < min_TTC)  //experimental 
+                //if (range_rate_ > 0)    
                 {
                     min_TTC = distance_ / range_rate_;
                     if (min_TTC <= TTC_threshold) 
