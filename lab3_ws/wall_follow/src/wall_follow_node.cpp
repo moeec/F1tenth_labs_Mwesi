@@ -10,6 +10,17 @@ public:
     WallFollow() : Node("wall_follow_node")
     {
         // TODO: create ROS subscribers and publishers
+
+        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
+
+        ackermann_timer_ = this->create_wall_timer(
+            50ms, std::bind(&WallFollow::ackermann_callback, this)
+        );
+
+        scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
+            "/scan", 10, std::bind(&WallFollow::scan_callback, this, std::placeholders::_1));
+
+
     }
 
 private:
@@ -27,6 +38,8 @@ private:
     std::string drive_topic = "/drive";
     /// TODO: create ROS subscribers and publishers
 
+
+
     double get_range(float* range_data, double angle)
     {
         /*
@@ -41,6 +54,25 @@ private:
         */
 
         // TODO: implement
+
+        sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg
+        auto range_measured = scan_msg->ranges;
+
+        for (unsigned int i = 0; i < range_measured.size(); i++)
+        {
+            distance_ = scan_msg->ranges[i];
+            angle_increment_ = scan_msg->angle_increment;
+            angle_ = scan_msg->angle_min;
+            current_angle_ = angle_ + angle_increment_ * i;                             
+
+            if (!std::isinf(distance_) && !std::isnan(distance_))
+            {
+            }
+        }
+
+
+        range_to_wall = 
+          
         return 0.0;
     }
 
