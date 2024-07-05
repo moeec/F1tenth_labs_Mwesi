@@ -25,9 +25,9 @@ public:
 
 private:
     // PID CONTROL PARAMS
-    // TODO: double kp =
-    // TODO: double kd =
-    // TODO: double ki =
+    double kp = 1.00
+    double kd = 0.001 
+    double ki = 0.005
     double servo_offset = 0.0;
     double prev_error = 0.0;
     double error = 0.0;
@@ -62,7 +62,7 @@ private:
         {
             distance_ = scan_msg->ranges[i];
             angle_increment_ = scan_msg->angle_increment;
-            angle_ = scan_msg->angle_min;
+            angle_increment_size = double angle/angle_increment_;
             current_angle_ = angle_ + angle_increment_ * i;                             
 
             if (!std::isinf(distance_) && !std::isnan(distance_))
