@@ -4,6 +4,8 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 
+#define PI 3.1415927
+
 class WallFollow : public rclcpp::Node {
 
 public:
@@ -57,6 +59,8 @@ private:
 
         sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg
         auto range_measured = scan_msg->ranges;
+
+        b_angle = PI/180; 
 
         for (unsigned int i = 0; i < range_measured.size(); i++)
         {
