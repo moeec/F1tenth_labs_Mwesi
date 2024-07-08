@@ -57,20 +57,48 @@ private:
 
         // TODO: implement
 
-        sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg
-        auto range_measured = scan_msg->ranges;
+
+        auto scan = sensor_msgs::msg::LaserScan();
+
+        angle_increment_ = scan.angle_increment;
+        angle_min_ = scan.angle_min;
+        angle_max_ = scan.angle_max;
+        double current_angle_;
+        
+
+        double closest = std::numeric_limits<double>::max();
+        double minDiff = std::numeric_limits<double>::max();
+        
+        for (unsigned int i = 0; i < range_data.size(); i++) 
+        {
+            current_angle_ = angle_min + angle_increment_ * i;
+            double diff = std::abs(current_angle_ - angle);
+            
+            if (diff < minDiff) 
+            {
+            minDiff = diff;
+            closest = current_angle_;
+            }
+        }
+
+        std::cout << "Closest value to " << angle << " is " << closest << std::endl;
+
+
+        
 
         b_angle = PI/180; 
+        double angle_increment = angle/range_data.size();
+        double range_measurement;
 
-        for (unsigned int i = 0; i < range_measured.size(); i++)
+        for (unsigned int i = 0; i < range_data.size(); i++)
         {
-            distance_ = scan_msg->ranges[i];
-            angle_increment_ = scan_msg->angle_increment;
-            angle_increment_size = double angle/angle_increment_;
-            current_angle_ = angle_ + angle_increment_ * i;                             
+            range_measurement = range_data[i];
+            current_angle_ = angle_increment * i;                             
 
-            if (!std::isinf(distance_) && !std::isnan(distance_))
+            if (!std::isinf(range_measurement) && !std::isnan(range_measurement))
             {
+
+
             }
         }
 
@@ -126,10 +154,62 @@ private:
         Returns:
             None
         */
+
+        auto range_array = scan_msg->ranges;
+        auto laser_scan = scan_msg;
+        auto ackermann_drive = ackermann_msgs::msg::AckermannDriveStamped();
+        auto angle_min_ = scan_msg->angle_min
+        auto angle_max_ = scan_msg->angle_max
+
+        double get_range(range_array,angle_);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         double error = 0.0; // TODO: replace with error calculated by get_error()
         double velocity = 0.0; // TODO: calculate desired car velocity based on error
         // TODO: actuate the car with PID
 
+    }
+
+
+    double findClosestNumber(const std::vector<double>& arr, double target) 
+    {
+
+        /*The findClosestNumber function takes a std::vector<double> and a double target as input.
+          It initializes closest and minDiff with maximum possible values.
+          It iterates through each number in the array, calculates the absolute difference between 
+          the current number and the target, and updates closest if this difference is smaller than the current minDiff.
+          Finally, the function returns the closest number.*/
+
+
+        double closest = std::numeric_limits<double>::max();
+        double minDiff = std::numeric_limits<double>::max();
+        
+        for (const double& num : arr) 
+        {
+            double diff = std::abs(num - target);
+            
+            if (diff < minDiff) 
+            {
+            minDiff = diff;
+            closest = num;
+            }
+        }
+
+    return closest;
     }
 
 };
