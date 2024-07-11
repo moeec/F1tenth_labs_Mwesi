@@ -1,10 +1,12 @@
 #include "rclcpp/rclcpp.hpp"
 #include <string>
+#include <chrono>
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 
 #define PI 3.1415927
+#define RAD2DEG(x) ((x)*180./PI)
 
 class WallFollow : public rclcpp::Node {
 
@@ -15,9 +17,9 @@ public:
 
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
 
-        ackermann_timer_ = this->create_wall_timer(
-            50ms, std::bind(&WallFollow::ackermann_callback, this)
-        );
+      //  ackermann_timer_ = this->create_wall_timer(
+      //      50ms, std::bind(&WallFollow::ackermann_callback, this)
+      //  );
 
         scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
             "/scan", 10, std::bind(&WallFollow::scan_callback, this, std::placeholders::_1));
@@ -27,9 +29,9 @@ public:
 
 private:
     // PID CONTROL PARAMS
-    double kp = 1.00
-    double kd = 0.001 
-    double ki = 0.005
+    double kp = 1.00;
+    double kd = 0.001; 
+    double ki = 0.005;
     double servo_offset = 0.0;
     double prev_error = 0.0;
     double error = 0.0;
@@ -156,11 +158,11 @@ private:
         */
 
         unsigned int b_index = (unsigned int)(floor((90.0 / 180.0 * PI - scan_msg.angle_min) / scan_msg.angle_increment));
-        double b_angle = 90.0 / 180.0 * PI;
-        double a_angle = 45.0 / 180.0 * PI;
+        double b_angle = RAD2DEG(90)        // 90.0 / 180.0 * PI; older method
+        double a_angle = RAD2DEG(45)         // 45.0 / 180.0 * PI; older method
         unsigned int a_index;
 
-        if (scan_msg.angle_min > 45.0 / 180.0 * PI) 
+        if (scan_msg.angle_min > RAD2DEG(45)) 
         {
             a_angle = scan_msg.angle_min;
             a_index = 0;
@@ -190,6 +192,10 @@ private:
         // TODO: actuate the car with PID
 
     }
+
+    rclcpp::TimerBase::SharedPtr ackermann_timer_;
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
 
 };
 int main(int argc, char ** argv) {
