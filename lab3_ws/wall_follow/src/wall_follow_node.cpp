@@ -44,7 +44,7 @@ private:
 
 
 
-    double get_range(float* range_data, double angle)
+    double get_range(float* range_data, size_t size, double angle)
     {
         /*
         Simple helper to return the corresponding range measurement at a given angle. Make sure you take care of NaNs and infs.
@@ -91,9 +91,11 @@ private:
 
         double angle_increment = angle/range_data.size();*/
 
-        double range_measurement; 
+       
+        double range_measurement;
+        double returned_range; 
 
-        for (unsigned int i = 0; i < range_data.size(); i++)
+        for (unsigned int i = 0; i < size; i++)
         {
             range_measurement = range_data[i];
             //current_angle_ = angle_increment * i;                             
@@ -105,9 +107,9 @@ private:
             }
         }
 
-        range_to_wall = 
+       
           
-        return 0.0;
+        return returned_range;
     }
 
     double get_error(float* range_data, double dist)
@@ -157,23 +159,28 @@ private:
             None
         */
 
-        unsigned int b_index = (unsigned int)(floor((90.0 / 180.0 * PI - scan_msg.angle_min) / scan_msg.angle_increment));
-        double b_angle = RAD2DEG(90)        // 90.0 / 180.0 * PI; older method
-        double a_angle = RAD2DEG(45)         // 45.0 / 180.0 * PI; older method
+        angle_increment_ = scan_msg->angle_increment;
+        angle_min_ = scan_msg->angle_min;
+        auto range_data_ = scan_msg->ranges;
+        size = range_data_.size();
+
+        unsigned int b_index = (unsigned int)(floor((RAD2DEG(90) - angle_min_) / angle_increment_));
+        double b_angle = RAD2DEG(90);        // 90.0 / 180.0 * PI; older method
+        double a_angle = RAD2DEG(45);         // 45.0 / 180.0 * PI; older method
         unsigned int a_index;
 
-        if (scan_msg.angle_min > RAD2DEG(45)) 
+        if (angle_min_ > RAD2DEG(45)) 
         {
-            a_angle = scan_msg.angle_min;
+            a_angle = angle_min_;
             a_index = 0;
         } 
         else 
         {
-            a_index = (unsigned int)(floor((45.0 / 180.0 * PI - scan_msg.angle_min) / scan_msg.angle_increment));
+            a_index = (unsigned int)(floor((RAD2DEG(45) - angle_min_) / angle_increment_));
         }
 
-        double a_range = get_range();
-        double b_range = get_range();
+        double a_range = get_range(range_data_, size, a_angle);
+        // double b_range = get_range();
 
         
         
@@ -196,9 +203,14 @@ private:
     rclcpp::TimerBase::SharedPtr ackermann_timer_;
     rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
+    double angle_increment_;
+    double angle_min_;
+    size_t size; 
 
 };
 int main(int argc, char ** argv) {
+    
+    
     rclcpp::init(argc, argv);
     rclcpp::spin(std::make_shared<WallFollow>());
     rclcpp::shutdown();
