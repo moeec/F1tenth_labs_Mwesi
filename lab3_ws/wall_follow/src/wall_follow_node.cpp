@@ -44,7 +44,7 @@ private:
 
 
 
-    double get_range(float* range_data, size_t size, double angle)
+    double get_range(std::vector<float> range_data, size_t size, double angle)
     {
         /*
         Simple helper to return the corresponding range measurement at a given angle. Make sure you take care of NaNs and infs.
@@ -92,13 +92,15 @@ private:
         double angle_increment = angle/range_data.size();*/
 
        
-        double range_measurement;
-        double returned_range; 
+        float range_measurement;
+        float returned_range;
+        double current_angle; 
 
         for (unsigned int i = 0; i < size; i++)
         {
             range_measurement = range_data[i];
-            //current_angle_ = angle_increment * i;                             
+            current_angle_ = angle_increment_ * i;
+            RCLCPP_INFO(this->get_logger(), "Current angle is = '%2f'", current_angle);                           
 
             if (!std::isinf(range_measurement) && !std::isnan(range_measurement))
             {
@@ -179,7 +181,7 @@ private:
             a_index = (unsigned int)(floor((RAD2DEG(45) - angle_min_) / angle_increment_));
         }
 
-        double a_range = get_range(range_data_, size, a_angle);
+        float a_range = get_range(range_data_, size, a_angle);
         // double b_range = get_range();
 
         
