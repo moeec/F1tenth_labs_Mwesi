@@ -191,8 +191,9 @@ private:
 
         RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle(RAD) = '%2f'", a_angle);
         RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle(deg) = '%2f'", RAD2DEG(a_angle));
-        RCLCPP_INFO(this->get_logger(), "scan_callback:a_index = '%2f'", a_index);    
+        RCLCPP_INFO(this->get_logger(), "scan_callback:a_index = '%2f'", a_index);  
 
+        a_angle = RAD2DEG(a_angle);
         float a_range = get_range(range_data_, size, a_angle);
         // double b_range = get_range();
 
