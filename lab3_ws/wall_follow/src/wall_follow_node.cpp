@@ -94,13 +94,13 @@ private:
        
         float range_measurement;
         float returned_range;
-        double current_angle; 
+        double current_angle_; 
 
         for (unsigned int i = 0; i < size; i++)
         {
             range_measurement = range_data[i];
             current_angle_ = angle_increment_ * i;
-            RCLCPP_INFO(this->get_logger(), "Current angle is = '%2f'", current_angle);                           
+            RCLCPP_INFO(this->get_logger(), "Current angle is = '%2f'", current_angle_);                           
 
             if (!std::isinf(range_measurement) && !std::isnan(range_measurement))
             {
