@@ -7,6 +7,7 @@
 
 #define PI 3.1415927
 #define RAD2DEG(x) ((x)*180./PI)
+#define DEG2RAD(x) ((x)/180.0*PI)
 
 class WallFollow : public rclcpp::Node {
 
@@ -166,21 +167,21 @@ private:
         auto range_data_ = scan_msg->ranges;
         size = range_data_.size();
 
-        unsigned int b_index = (unsigned int)(floor((RAD2DEG(90) - angle_min_) / angle_increment_));
-        double b_angle = RAD2DEG(90);        // 90.0 / 180.0 * PI; older method
-        double a_angle = RAD2DEG(45);         // 45.0 / 180.0 * PI; older method
+        unsigned int b_index = (unsigned int)(floor((DEG2RAD(90) - angle_min_) / angle_increment_));
+        double b_angle = DEG2RAD(90);        // 90.0 / 180.0 * PI; older method
+        double a_angle = DEG2RAD(45);         // 45.0 / 180.0 * PI; older method
         unsigned int a_index;
 
         RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle before if loop = '%2f'", a_angle);
 
-        if (angle_min_ > RAD2DEG(45)) 
+        if (angle_min_ > DEG2RAD(45)) 
         {
             a_angle = angle_min_;
             a_index = 0;
         } 
         else 
         {
-            a_index = (unsigned int)(floor((RAD2DEG(45) - angle_min_) / angle_increment_));
+            a_index = (unsigned int)(floor((DEG2RAD(45) - angle_min_) / angle_increment_));
         }
 
 
