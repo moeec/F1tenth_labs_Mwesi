@@ -181,8 +181,13 @@ private:
             a_index = (unsigned int)(floor((RAD2DEG(45) - angle_min_) / angle_increment_));
         }
 
+
+        RCLCPP_INFO(this->get_logger(), "scan_callback:angle = '%2f'", a_angle);  
+
         float a_range = get_range(range_data_, size, a_angle);
         // double b_range = get_range();
+
+        RCLCPP_INFO(this->get_logger(), "scan_callback:range returned = '%2f'", a_range);
 
         
         
