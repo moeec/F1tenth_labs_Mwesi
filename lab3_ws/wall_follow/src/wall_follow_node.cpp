@@ -102,7 +102,10 @@ private:
             range_measurement = range_data[i];
             current_angle_ = RAD2DEG(angle_increment_ * i);
             RCLCPP_INFO(this->get_logger(), "get_range: Current angle is = '%2f'", current_angle_);
-            RCLCPP_INFO(this->get_logger(), "get_range: Input angle is = '%2f'", angle);                             
+            RCLCPP_INFO(this->get_logger(), "get_range: Input angle is = '%2f'", angle);
+            RCLCPP_INFO(this->get_logger(), "get_range: a_angle(RAD) = '%2f'", a_angle);
+            RCLCPP_INFO(this->get_logger(), "get_range: a_angle(deg) = '%2f'", RAD2DEG(a_angle));
+            RCLCPP_INFO(this->get_logger(), "get_range: a_index = '%2f'", a_index);                              
 
             if (!std::isinf(range_measurement) && !std::isnan(range_measurement))
             {
@@ -168,10 +171,9 @@ private:
         auto range_data_ = scan_msg->ranges;
         size = range_data_.size();
 
-        unsigned int b_index = (unsigned int)(floor((DEG2RAD(90) - angle_min_) / angle_increment_));
-        double b_angle = DEG2RAD(90);        // 90.0 / 180.0 * PI; older method
-        double a_angle = DEG2RAD(45);         // 45.0 / 180.0 * PI; older method
-        unsigned int a_index;
+        b_index = (unsigned int)(floor((DEG2RAD(90) - angle_min_) / angle_increment_));
+        b_angle = DEG2RAD(90);        // 90.0 / 180.0 * PI; older method
+        a_angle = DEG2RAD(45);         // 45.0 / 180.0 * PI; older method
 
         RCLCPP_INFO(this->get_logger(), "scan_callback:b_index before if loop(RAD) = '%2f'", b_index);
         RCLCPP_INFO(this->get_logger(), "scan_callback:a_index before if loop(RAD) = '%2f'", a_index);
@@ -199,11 +201,6 @@ private:
 
         RCLCPP_INFO(this->get_logger(), "scan_callback:range returned = '%2f'", a_range);
 
-        
-        
-
-
-
 
         //auto range_array = scan_msg->ranges;
         //auto laser_scan = scan_msg;
@@ -223,6 +220,10 @@ private:
     double angle_increment_;
     double angle_min_;
     size_t size; 
+    double b_angle;
+    double a_angle;
+    unsigned int a_index;
+    unsigned int b_index;
 
 };
 int main(int argc, char ** argv) {
