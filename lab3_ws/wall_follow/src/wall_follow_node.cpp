@@ -171,6 +171,8 @@ private:
         double a_angle = RAD2DEG(45);         // 45.0 / 180.0 * PI; older method
         unsigned int a_index;
 
+        RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle before if loop = '%2f'", a_angle);
+
         if (angle_min_ > RAD2DEG(45)) 
         {
             a_angle = angle_min_;
@@ -182,7 +184,8 @@ private:
         }
 
 
-        RCLCPP_INFO(this->get_logger(), "scan_callback:angle = '%2f'", a_angle);  
+        RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle = '%2f'", a_angle);
+        RCLCPP_INFO(this->get_logger(), "scan_callback:a_index = '%2f'", a_index);    
 
         float a_range = get_range(range_data_, size, a_angle);
         // double b_range = get_range();
