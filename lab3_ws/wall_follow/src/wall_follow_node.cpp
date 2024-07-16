@@ -70,9 +70,9 @@ private:
         {
             range_measurement = range_data[i];
             current_angle_ = RAD2DEG(angle_increment_ * i);
-            RCLCPP_INFO(this->get_logger(), "get_range: Current angle is = '%2f'", current_angle_);
-            RCLCPP_INFO(this->get_logger(), "get_range: Input angle is = '%2f'", angle);
-            RCLCPP_INFO(this->get_logger(), "get_range: a_angle = '%2f'", a_angle);
+            //RCLCPP_INFO(this->get_logger(), "get_range: Current angle is = '%2f'", current_angle_);
+            //RCLCPP_INFO(this->get_logger(), "get_range: Input angle is = '%2f'", angle);
+            //RCLCPP_INFO(this->get_logger(), "get_range: a_angle = '%2f'", a_angle);
             //RCLCPP_INFO(this->get_logger(), "get_range: a_index = '%2f'", a_index);                              
 
             if (!std::isinf(range_measurement) && !std::isnan(range_measurement))
@@ -153,11 +153,11 @@ private:
         b_angle = 90;        // 90.0 / 180.0 * PI; older method
         a_angle = 45;         // 45.0 / 180.0 * PI; older method
 
-        RCLCPP_INFO(this->get_logger(), "-----------------------scan_callback-----------------------------------");
+        //RCLCPP_INFO(this->get_logger(), "-----------------------scan_callback-----------------------------------");
         //RCLCPP_INFO(this->get_logger(), "scan_callback: b_index before if loop(RAD) = '%2f'", b_index);
         //RCLCPP_INFO(this->get_logger(), "scan_callback: a_index before if loop(RAD) = '%2f'", a_index);
-        RCLCPP_INFO(this->get_logger(), "scan_callback: a_angle before if loop(RAD) = '%2f'", a_angle);
-        RCLCPP_INFO(this->get_logger(), "scan_callback: a_angle before if loop(deg) = '%2f'", RAD2DEG(a_angle));
+        //RCLCPP_INFO(this->get_logger(), "scan_callback: a_angle before if loop(RAD) = '%2f'", a_angle);
+        //RCLCPP_INFO(this->get_logger(), "scan_callback: a_angle before if loop(deg) = '%2f'", RAD2DEG(a_angle));
 
         /*
         if (angle_min_ > DEG2RAD(45)) 
