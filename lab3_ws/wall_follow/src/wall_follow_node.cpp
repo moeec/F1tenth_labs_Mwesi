@@ -61,7 +61,7 @@ private:
 
         // TODO: implement
 
-        RCLCPP_INFO(this->get_logger(), "-----------------------get_range-----------------------------------");
+        //RCLCPP_INFO(this->get_logger(), "-----------------------get_range-----------------------------------");
         float range_measurement;
         float returned_range;
         double current_angle_; 
@@ -82,8 +82,8 @@ private:
                 if (abs(angle - current_angle_) < RAD2DEG(angle_increment_))
                 {
                     double diff = abs(angle - current_angle_);
-                    RCLCPP_INFO(this->get_logger(), "Returning Range: abs(angle - current_angle_) = '%2f'", diff);
-                    RCLCPP_INFO(this->get_logger(), "Returning Range: angle_increment_ = '%2f'", angle_increment_);
+                    //RCLCPP_INFO(this->get_logger(), "Returning Range: abs(angle - current_angle_) = '%2f'", diff);
+                    //RCLCPP_INFO(this->get_logger(), "Returning Range: angle_increment_ = '%2f'", angle_increment_);
                     return returned_range;
                 }
 
