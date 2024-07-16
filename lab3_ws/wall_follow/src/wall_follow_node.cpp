@@ -110,14 +110,16 @@ private:
             {
                 returned_range = range_data[i];
                 RCLCPP_INFO(this->get_logger(), "get_range: inside range measurement w/range = '%2f'", returned_range);
-                if (abs(angle - current_angle_) < angle_increment_)
+                if (abs(angle - current_angle_) < RAD2DEG(angle_increment_))
                 {
+                    double diff = abs(angle - current_angle_)
+                    RCLCPP_INFO(this->get_logger(), "Returning Range: abs(angle - current_angle_) = '%2f'", diff);
+                    RCLCPP_INFO(this->get_logger(), "Returning Range: angle_increment_ = '%2f'", angle_increment_);
                     return returned_range;
                 }
 
             }
-        }
-          
+        }    
         
     }
 
