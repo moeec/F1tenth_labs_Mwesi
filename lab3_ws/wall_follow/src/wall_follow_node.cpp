@@ -92,7 +92,7 @@ private:
 
         double angle_increment = angle/range_data.size();*/
 
-       
+        RCLCPP_INFO(this->get_logger(), "-----------------------get_range-----------------------------------");
         float range_measurement;
         float returned_range;
         double current_angle_; 
@@ -103,20 +103,22 @@ private:
             current_angle_ = RAD2DEG(angle_increment_ * i);
             RCLCPP_INFO(this->get_logger(), "get_range: Current angle is = '%2f'", current_angle_);
             RCLCPP_INFO(this->get_logger(), "get_range: Input angle is = '%2f'", angle);
-            RCLCPP_INFO(this->get_logger(), "get_range: a_angle(RAD) = '%2f'", a_angle);
-            RCLCPP_INFO(this->get_logger(), "get_range: a_angle(deg) = '%2f'", RAD2DEG(a_angle));
-            RCLCPP_INFO(this->get_logger(), "get_range: a_index = '%2f'", a_index);                              
+            RCLCPP_INFO(this->get_logger(), "get_range: a_angle = '%2f'", a_angle);
+            //RCLCPP_INFO(this->get_logger(), "get_range: a_index = '%2f'", a_index);                              
 
             if (!std::isinf(range_measurement) && !std::isnan(range_measurement))
             {
                 returned_range = range_data[i];
+                RCLCPP_INFO(this->get_logger(), "get_range: inside range measurement w/range = '%2f'", returned_range);
+                if (abs(angle - current_angle_) < angle_increment_)
+                {
+                    return returned_range;
+                }
 
             }
         }
-
-       
           
-        return returned_range;
+        
     }
 
     double get_error(float* range_data, double dist)
@@ -133,6 +135,9 @@ private:
         */
 
         // TODO:implement
+
+        RCLCPP_INFO(this->get_logger(), "get_error: range_data = '%2f'", range_data);
+        RCLCPP_INFO(this->get_logger(), "get_error: dist = '%2f'", dist);
         return 0.0;
     }
 
@@ -148,10 +153,12 @@ private:
         Returns:
             None
         */
-        double angle = 0.0;
         // TODO: Use kp, ki & kd to implement a PID controller
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
         // TODO: fill in drive message and publish
+
+        RCLCPP_INFO(this->get_logger(), "pid_control: error = '%2f'", error);
+        RCLCPP_INFO(this->get_logger(), "pid_control: velocity = '%2f'", velocity);
     }
 
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
@@ -171,29 +178,31 @@ private:
         auto range_data_ = scan_msg->ranges;
         size = range_data_.size();
 
-        b_index = (unsigned int)(floor((DEG2RAD(90) - angle_min_) / angle_increment_));
+        // b_index = (unsigned int)(floor((DEG2RAD(90) - angle_min_) / angle_increment_));
         b_angle = DEG2RAD(90);        // 90.0 / 180.0 * PI; older method
         a_angle = DEG2RAD(45);         // 45.0 / 180.0 * PI; older method
 
-        RCLCPP_INFO(this->get_logger(), "scan_callback:b_index before if loop(RAD) = '%2f'", b_index);
-        RCLCPP_INFO(this->get_logger(), "scan_callback:a_index before if loop(RAD) = '%2f'", a_index);
-        RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle before if loop(RAD) = '%2f'", a_angle);
-        RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle before if loop(deg) = '%2f'", RAD2DEG(a_angle));
+        RCLCPP_INFO(this->get_logger(), "-----------------------scan_callback-----------------------------------");
+        //RCLCPP_INFO(this->get_logger(), "scan_callback: b_index before if loop(RAD) = '%2f'", b_index);
+        //RCLCPP_INFO(this->get_logger(), "scan_callback: a_index before if loop(RAD) = '%2f'", a_index);
+        RCLCPP_INFO(this->get_logger(), "scan_callback: a_angle before if loop(RAD) = '%2f'", a_angle);
+        RCLCPP_INFO(this->get_logger(), "scan_callback: a_angle before if loop(deg) = '%2f'", RAD2DEG(a_angle));
 
+        /*
         if (angle_min_ > DEG2RAD(45)) 
         {
             a_angle = angle_min_;
-            a_index = 0;
+            //a_index = 0;
         } 
         else 
         {
-            a_index = (unsigned int)(floor((DEG2RAD(45) - angle_min_) / angle_increment_));
+            //a_index = (unsigned int)(floor((DEG2RAD(45) - angle_min_) / angle_increment_));
         }
-
+        */
 
         RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle(RAD) = '%2f'", a_angle);
         RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle(deg) = '%2f'", RAD2DEG(a_angle));
-        RCLCPP_INFO(this->get_logger(), "scan_callback:a_index = '%2f'", a_index);  
+        //RCLCPP_INFO(this->get_logger(), "scan_callback:a_index = '%2f'", a_index);  
 
         a_angle = RAD2DEG(a_angle);
         float a_range = get_range(range_data_, size, a_angle);
@@ -222,8 +231,8 @@ private:
     size_t size; 
     double b_angle;
     double a_angle;
-    unsigned int a_index;
-    unsigned int b_index;
+    //unsigned int a_index;
+    //unsigned int b_index;
 
 };
 int main(int argc, char ** argv) {
