@@ -128,6 +128,24 @@ private:
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
         // TODO: fill in drive message and publish
 
+        if (abs(drive_msg.drive.steering_angle) > DEG2RAD(20.0)) 
+        {
+            drive_msg.drive.speed = 0.5;
+            velocity = 0.5;
+        } else if (abs(drive_msg.drive.steering_angle) > DEG2RAD(10.0)) 
+        {
+            drive_msg.drive.speed = 1.0;
+            velocity = 0.5;
+        } 
+        else 
+        {
+            drive_msg.drive.speed = 1.5;
+            velocity = 0.5;
+        }
+
+
+        
+
         RCLCPP_INFO(this->get_logger(), "pid_control: error = '%2f'", error);
         RCLCPP_INFO(this->get_logger(), "pid_control: velocity = '%2f'", velocity);
     }
