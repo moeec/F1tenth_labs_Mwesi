@@ -171,10 +171,8 @@ private:
         }
         */
 
-        RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle(RAD) = '%2f'", a_angle);
-        RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle(deg) = '%2f'", RAD2DEG(a_angle));
-        RCLCPP_INFO(this->get_logger(), "scan_callback:b_angle(RAD) = '%2f'", b_angle);
-        RCLCPP_INFO(this->get_logger(), "scan_callback:b_angle(deg) = '%2f'", RAD2DEG(b_angle));
+        //RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle(RAD) = '%2f'", a_angle);
+        //RCLCPP_INFO(this->get_logger(), "scan_callback:b_angle(RAD) = '%2f'", b_angle);
         //RCLCPP_INFO(this->get_logger(), "scan_callback:a_index = '%2f'", a_index);  
 
         
