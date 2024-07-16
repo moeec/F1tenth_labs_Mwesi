@@ -1,6 +1,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include <string>
 #include <chrono>
+#include <cmath>
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
@@ -60,38 +61,6 @@ private:
 
         // TODO: implement
 
-
-       /* Older code left just incase
-       
-       auto scan = sensor_msgs::msg::LaserScan();
-
-        angle_increment_ = scan.angle_increment;
-        angle_min_ = scan.angle_min;
-        angle_max_ = scan.angle_max;
-        double current_angle_;
-        
-
-        double closest = std::numeric_limits<double>::max();
-        double minDiff = std::numeric_limits<double>::max();
-        
-        for (unsigned int i = 0; i < range_data.size(); i++) 
-        {
-            current_angle_ = angle_min + angle_increment_ * i;
-            double diff = std::abs(current_angle_ - angle);
-            
-            if (diff < minDiff) 
-            {
-            minDiff = diff;
-            closest = current_angle_;
-            }
-        }
-
-        std::cout << "Closest value to " << angle << " is " << closest << std::endl; 
-
-        b_angle = PI/180; 
-
-        double angle_increment = angle/range_data.size();*/
-
         RCLCPP_INFO(this->get_logger(), "-----------------------get_range-----------------------------------");
         float range_measurement;
         float returned_range;
@@ -112,7 +81,7 @@ private:
                 RCLCPP_INFO(this->get_logger(), "get_range: inside range measurement w/range = '%2f'", returned_range);
                 if (abs(angle - current_angle_) < RAD2DEG(angle_increment_))
                 {
-                    double diff = abs(angle - current_angle_)
+                    double diff = abs(angle - current_angle_);
                     RCLCPP_INFO(this->get_logger(), "Returning Range: abs(angle - current_angle_) = '%2f'", diff);
                     RCLCPP_INFO(this->get_logger(), "Returning Range: angle_increment_ = '%2f'", angle_increment_);
                     return returned_range;
@@ -181,8 +150,8 @@ private:
         size = range_data_.size();
 
         // b_index = (unsigned int)(floor((DEG2RAD(90) - angle_min_) / angle_increment_));
-        b_angle = DEG2RAD(90);        // 90.0 / 180.0 * PI; older method
-        a_angle = DEG2RAD(45);         // 45.0 / 180.0 * PI; older method
+        b_angle = 90;        // 90.0 / 180.0 * PI; older method
+        a_angle = 45;         // 45.0 / 180.0 * PI; older method
 
         RCLCPP_INFO(this->get_logger(), "-----------------------scan_callback-----------------------------------");
         //RCLCPP_INFO(this->get_logger(), "scan_callback: b_index before if loop(RAD) = '%2f'", b_index);
@@ -204,22 +173,34 @@ private:
 
         RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle(RAD) = '%2f'", a_angle);
         RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle(deg) = '%2f'", RAD2DEG(a_angle));
+        RCLCPP_INFO(this->get_logger(), "scan_callback:b_angle(RAD) = '%2f'", b_angle);
+        RCLCPP_INFO(this->get_logger(), "scan_callback:b_angle(deg) = '%2f'", RAD2DEG(b_angle));
         //RCLCPP_INFO(this->get_logger(), "scan_callback:a_index = '%2f'", a_index);  
 
-        a_angle = RAD2DEG(a_angle);
+        
+        /* "\alpha=\mbox{tan}^{-1}\left(\frac{a\mbox{cos}(\theta)-b}{a\mbox{sin}(\theta)}\right)"
+        calucation in TeX Commands*/
+        
         float a_range = get_range(range_data_, size, a_angle);
+        float b_range = get_range(range_data_, size, b_angle);
+
+        double upperValue = (a_range*cos(DEG2RAD(b_angle - a_angle))) - b_range;
+        double lowerValue = a_range*sin(DEG2RAD(b_angle - a_angle));
+
+        alpha_ = atan(upperValue/lowerValue); // Calculate the arctangent of the values above
+        Dt_ = b_range*cos(alpha_);
+        double error = 1 - Dt_; // TODO: replace with error calculated by get_error()
+
         // double b_range = get_range();
 
-        RCLCPP_INFO(this->get_logger(), "scan_callback:range returned = '%2f'", a_range);
+        RCLCPP_INFO(this->get_logger(), "scan_callback: a range returned = '%2f'", a_range);
+        RCLCPP_INFO(this->get_logger(), "scan_callback: b range returned = '%2f'", b_range);
+        RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated Dt = B - A  = '%2f'", Dt_);
+        RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated error = 1 - Dt  = '%2f'", error);
 
 
-        //auto range_array = scan_msg->ranges;
-        //auto laser_scan = scan_msg;
-        //auto ackermann_drive = ackermann_msgs::msg::AckermannDriveStamped();
-        //auto angle_min_ = scan_msg->angle_min
-        //auto angle_max_ = scan_msg->angle_max+
 
-        double error = 0.0; // TODO: replace with error calculated by get_error()
+        
         double velocity = 0.0; // TODO: calculate desired car velocity based on error
         // TODO: actuate the car with PID
 
@@ -233,6 +214,8 @@ private:
     size_t size; 
     double b_angle;
     double a_angle;
+    double alpha_;
+    double Dt_;
     //unsigned int a_index;
     //unsigned int b_index;
 
