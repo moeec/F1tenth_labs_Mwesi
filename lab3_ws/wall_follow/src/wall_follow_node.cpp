@@ -78,7 +78,7 @@ private:
             if (!std::isinf(range_measurement) && !std::isnan(range_measurement))
             {
                 returned_range = range_data[i];
-                RCLCPP_INFO(this->get_logger(), "get_range: inside range measurement w/range = '%2f'", returned_range);
+                //RCLCPP_INFO(this->get_logger(), "get_range: inside range measurement w/range = '%2f'", returned_range);
                 if (abs(angle - current_angle_) < RAD2DEG(angle_increment_))
                 {
                     double diff = abs(angle - current_angle_);
