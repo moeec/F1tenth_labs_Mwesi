@@ -19,8 +19,8 @@ public:
 
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
 
-        ackermann_timer_ = this->create_wall_timer(
-            50ms, std::bind(&WallFollow::ackermann_callback, this));
+        /*ackermann_timer_ = this->create_wall_timer(
+            50ms, std::bind(&WallFollow::ackermann_callback, this)); */
 
         scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
             "/scan", 10, std::bind(&WallFollow::scan_callback, this, std::placeholders::_1));
@@ -39,7 +39,7 @@ private:
 
     
     // Additional Variables 
-    rclcpp::TimerBase::SharedPtr ackermann_timer_;
+    // rclcpp::TimerBase::SharedPtr ackermann_timer_;
     double angle_increment_;
     double angle_min_;
     size_t size; 
@@ -239,6 +239,8 @@ private:
 
         double velocity = 0.0; // TODO: calculate desired car velocity based on error
         // TODO: actuate the car with PID
+
+        pid_control(error, velocity);
         
     }
     //unsigned int a_index;
