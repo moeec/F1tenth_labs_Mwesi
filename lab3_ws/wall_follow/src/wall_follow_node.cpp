@@ -39,6 +39,22 @@ private:
     double error = 0.0;
     double integral = 0.0;
 
+    
+    // Additional Variables 
+    rclcpp::TimerBase::SharedPtr ackermann_timer_;
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
+    double angle_increment_;
+    double angle_min_;
+    size_t size; 
+    double b_angle;
+    double a_angle;
+    double alpha_;
+    double Dt_;
+    double prev_error_ = 0.0;
+    rclcpp::Time t_start_time_;
+    rclcpp::Time prev_t_start_time_;
+
     // Topics
     std::string lidarscan_topic = "/scan";
     std::string drive_topic = "/drive";
@@ -127,6 +143,11 @@ private:
         // TODO: Use kp, ki & kd to implement a PID controller
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
         // TODO: fill in drive message and publish
+        t_start_time_ = this->now();
+        rclcpp::Duration delta_t_start_time = t_start_time_ - prev_t_start_time_;
+        integral += prev_error * delta_t_start_time.seconds();
+        drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error) / delta_t_start_time.seconds() + ki * integral);
+        prev_t_start_time_ = this->now();
 
         if (abs(drive_msg.drive.steering_angle) > DEG2RAD(20.0)) 
         {
@@ -214,24 +235,13 @@ private:
         RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated Dt = B - A  = '%2f'", Dt_);
         RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated error = 1 - Dt  = '%2f'", error);
 
-
-
-        
         double velocity = 0.0; // TODO: calculate desired car velocity based on error
         // TODO: actuate the car with PID
 
     }
 
-    rclcpp::TimerBase::SharedPtr ackermann_timer_;
-    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
-    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
-    double angle_increment_;
-    double angle_min_;
-    size_t size; 
-    double b_angle;
-    double a_angle;
-    double alpha_;
-    double Dt_;
+
+
     //unsigned int a_index;
     //unsigned int b_index;
 
