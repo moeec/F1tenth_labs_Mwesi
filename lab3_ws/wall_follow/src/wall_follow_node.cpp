@@ -19,13 +19,11 @@ public:
 
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
 
-      //  ackermann_timer_ = this->create_wall_timer(
-      //      50ms, std::bind(&WallFollow::ackermann_callback, this)
-      //  );
+        ackermann_timer_ = this->create_wall_timer(
+            50ms, std::bind(&WallFollow::ackermann_callback, this));
 
         scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
             "/scan", 10, std::bind(&WallFollow::scan_callback, this, std::placeholders::_1));
-
 
     }
 
@@ -42,8 +40,6 @@ private:
     
     // Additional Variables 
     rclcpp::TimerBase::SharedPtr ackermann_timer_;
-    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
-    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
     double angle_increment_;
     double angle_min_;
     size_t size; 
@@ -54,6 +50,10 @@ private:
     double prev_error_ = 0.0;
     rclcpp::Time t_start_time_;
     rclcpp::Time prev_t_start_time_;
+
+    // Publisher & Subscribers 
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
 
     // Topics
     std::string lidarscan_topic = "/scan";
@@ -75,9 +75,7 @@ private:
             range: range measurement in meters at the given angle
         */
 
-        // TODO: implement
-
-        //RCLCPP_INFO(this->get_logger(), "-----------------------get_range-----------------------------------");
+        //RCLCPP_INFO(this->get_logger(), "-----------------------get_range-----------------------------------"); //for debugging
         float range_measurement;
         float returned_range;
         double current_angle_; 
@@ -86,20 +84,20 @@ private:
         {
             range_measurement = range_data[i];
             current_angle_ = RAD2DEG(angle_increment_ * i);
-            //RCLCPP_INFO(this->get_logger(), "get_range: Current angle is = '%2f'", current_angle_);
-            //RCLCPP_INFO(this->get_logger(), "get_range: Input angle is = '%2f'", angle);
-            //RCLCPP_INFO(this->get_logger(), "get_range: a_angle = '%2f'", a_angle);
-            //RCLCPP_INFO(this->get_logger(), "get_range: a_index = '%2f'", a_index);                              
+            //RCLCPP_INFO(this->get_logger(), "get_range: Current angle is = '%2f'", current_angle_); //for debugging
+            //RCLCPP_INFO(this->get_logger(), "get_range: Input angle is = '%2f'", angle);            //for debugging
+            //RCLCPP_INFO(this->get_logger(), "get_range: a_angle = '%2f'", a_angle);                 //for debugging
+            //RCLCPP_INFO(this->get_logger(), "get_range: a_index = '%2f'", a_index);                 //for debugging                             
 
             if (!std::isinf(range_measurement) && !std::isnan(range_measurement))
             {
                 returned_range = range_data[i];
-                //RCLCPP_INFO(this->get_logger(), "get_range: inside range measurement w/range = '%2f'", returned_range);
+                //RCLCPP_INFO(this->get_logger(), "get_range: inside range measurement w/range = '%2f'", returned_range); //for debugging
                 if (abs(angle - current_angle_) < RAD2DEG(angle_increment_))
                 {
                     double diff = abs(angle - current_angle_);
-                    //RCLCPP_INFO(this->get_logger(), "Returning Range: abs(angle - current_angle_) = '%2f'", diff);
-                    //RCLCPP_INFO(this->get_logger(), "Returning Range: angle_increment_ = '%2f'", angle_increment_);
+                    //RCLCPP_INFO(this->get_logger(), "Returning Range: abs(angle - current_angle_) = '%2f'", diff);     //for debugging
+                    //RCLCPP_INFO(this->get_logger(), "Returning Range: angle_increment_ = '%2f'", angle_increment_);    //for debugging
                     return returned_range;
                 }
 
@@ -121,8 +119,6 @@ private:
             error: calculated error
         */
 
-        // TODO:implement
-
         RCLCPP_INFO(this->get_logger(), "get_error: range_data = '%2f'", range_data);
         RCLCPP_INFO(this->get_logger(), "get_error: dist = '%2f'", dist);
         return 0.0;
@@ -141,13 +137,22 @@ private:
             None
         */
         // TODO: Use kp, ki & kd to implement a PID controller
+
+        RCLCPP_INFO(this->get_logger(), "-----------------------pid_control-----------------------------------"); //for debugging
+        
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
-        // TODO: fill in drive message and publish
+      
         t_start_time_ = this->now();
         rclcpp::Duration delta_t_start_time = t_start_time_ - prev_t_start_time_;
         integral += prev_error * delta_t_start_time.seconds();
         drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error) / delta_t_start_time.seconds() + ki * integral);
         prev_t_start_time_ = this->now();
+
+        RCLCPP_INFO(this->get_logger(), "pid_control: t_start_time_ = '%2f'", t_start_time_);
+        RCLCPP_INFO(this->get_logger(), "pid_control: delta_t_start_time = '%2f'", delta_t_start_time);
+        RCLCPP_INFO(this->get_logger(), "pid_control: integral = '%2f'", integral);
+        RCLCPP_INFO(this->get_logger(), "pid_control: drive_msg.drive.steering_angle = '%2f'", drive_msg.drive.steering_angle);
+        
 
         if (abs(drive_msg.drive.steering_angle) > DEG2RAD(20.0)) 
         {
@@ -163,9 +168,6 @@ private:
             drive_msg.drive.speed = 1.5;
             velocity = 0.5;
         }
-
-
-        
 
         RCLCPP_INFO(this->get_logger(), "pid_control: error = '%2f'", error);
         RCLCPP_INFO(this->get_logger(), "pid_control: velocity = '%2f'", velocity);
@@ -237,14 +239,10 @@ private:
 
         double velocity = 0.0; // TODO: calculate desired car velocity based on error
         // TODO: actuate the car with PID
-
+        
     }
-
-
-
     //unsigned int a_index;
     //unsigned int b_index;
-
 };
 int main(int argc, char ** argv) {
     
