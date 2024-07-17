@@ -143,9 +143,9 @@ private:
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
       
         t_start_time_ = this->now();
-        rclcpp::Duration delta_t_start_time = t_start_time_ - prev_t_start_time_;
-        integral += prev_error * delta_t_start_time.seconds();
-        drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error) / delta_t_start_time.seconds() + ki * integral);
+        double delta_t_start_time = t_start_time_.seconds() - prev_t_start_time_.seconds();
+        integral += prev_error * delta_t_start_time;
+        drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error) / delta_t_start_time + ki * integral);
         prev_t_start_time_ = this->now();
 
         RCLCPP_INFO(this->get_logger(), "pid_control: t_start_time_ = '%2f'", t_start_time_);
