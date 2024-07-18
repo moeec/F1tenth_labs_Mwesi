@@ -172,6 +172,8 @@ private:
             RCLCPP_INFO(this->get_logger(), "---------------------Drive Speed = 1.5;---------------------------------"); //for debugging
         }
 
+        ackermann_publisher_->publish(drive_msg);
+
         RCLCPP_INFO(this->get_logger(), "pid_control: error = '%2f'", error);
         RCLCPP_INFO(this->get_logger(), "pid_control: velocity = '%2f'", velocity);
     }
