@@ -225,7 +225,7 @@ private:
         Dt_t1_ = Dt_ + 1.00*sin(alpha_);
 
         // Calculate error with lookahead distance
-        double error = get_error(1-Dt_t1_);
+        double error = get_error(Dt_t1_);
         
         double velocity = 0.5; // TODO: calculate desired car velocity based on error
 
