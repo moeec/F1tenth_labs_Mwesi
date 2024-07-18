@@ -39,7 +39,6 @@ private:
 
     
     // Additional Variables 
-    // rclcpp::TimerBase::SharedPtr ackermann_timer_;
     double angle_increment_;
     double angle_min_;
     size_t size; 
@@ -59,8 +58,6 @@ private:
     std::string lidarscan_topic = "/scan";
     std::string drive_topic = "/drive";
     /// TODO: create ROS subscribers and publishers
-
-
 
     double get_range(std::vector<float> range_data, size_t size, double angle)
     {
@@ -95,18 +92,18 @@ private:
                 //RCLCPP_INFO(this->get_logger(), "get_range: inside range measurement w/range = '%2f'", returned_range); //for debugging
                 if (abs(angle - current_angle_) < RAD2DEG(angle_increment_))
                 {
-                    double diff = abs(angle - current_angle_);
+                    //double diff = abs(angle - current_angle_); /for debugging
                     //RCLCPP_INFO(this->get_logger(), "Returning Range: abs(angle - current_angle_) = '%2f'", diff);     //for debugging
                     //RCLCPP_INFO(this->get_logger(), "Returning Range: angle_increment_ = '%2f'", angle_increment_);    //for debugging
                     return returned_range;
                 }
 
             }
-        }    
-        
+        }
+        return 0.0;     
     }
 
-    double get_error(float* range_data, double dist)
+    double get_error(double dist)
     {
         /*
         Calculates the error to the wall. Follow the wall to the left (going counter clockwise in the Levine loop). You potentially will need to use get_range()
@@ -119,9 +116,11 @@ private:
             error: calculated error
         */
 
-        RCLCPP_INFO(this->get_logger(), "get_error: range_data = '%2f'", range_data);
+        double Dtp1_= dist + 0.25*sin(alpha_);
         RCLCPP_INFO(this->get_logger(), "get_error: dist = '%2f'", dist);
-        return 0.0;
+        RCLCPP_INFO(this->get_logger(), "get_error: dist + 1 = '%2f'", Dtp1_);
+        
+        return Dtp1_;
     }
 
     void pid_control(double error, double velocity)
@@ -158,15 +157,19 @@ private:
         {
             drive_msg.drive.speed = 0.5;
             velocity = 0.5;
-        } else if (abs(drive_msg.drive.steering_angle) > DEG2RAD(10.0)) 
+            RCLCPP_INFO(this->get_logger(), "---------------------Drive Speed = 0.5;---------------------------------"); //for debugging
+        } 
+        else if (abs(drive_msg.drive.steering_angle) > DEG2RAD(10.0)) 
         {
             drive_msg.drive.speed = 1.0;
-            velocity = 0.5;
+            velocity = 1.0;
+            RCLCPP_INFO(this->get_logger(), "---------------------Drive Speed = 1.0;---------------------------------"); //for debugging
         } 
         else 
         {
             drive_msg.drive.speed = 1.5;
-            velocity = 0.5;
+            velocity = 1.5;
+            RCLCPP_INFO(this->get_logger(), "---------------------Drive Speed = 1.5;---------------------------------"); //for debugging
         }
 
         RCLCPP_INFO(this->get_logger(), "pid_control: error = '%2f'", error);
@@ -191,32 +194,18 @@ private:
         size = range_data_.size();
 
         // b_index = (unsigned int)(floor((DEG2RAD(90) - angle_min_) / angle_increment_));
-        b_angle = 90;        // 90.0 / 180.0 * PI; older method
-        a_angle = 45;         // 45.0 / 180.0 * PI; older method
+        b_angle = 90;        
+        a_angle = 45;         
 
         //RCLCPP_INFO(this->get_logger(), "-----------------------scan_callback-----------------------------------");
         //RCLCPP_INFO(this->get_logger(), "scan_callback: b_index before if loop(RAD) = '%2f'", b_index);
         //RCLCPP_INFO(this->get_logger(), "scan_callback: a_index before if loop(RAD) = '%2f'", a_index);
         //RCLCPP_INFO(this->get_logger(), "scan_callback: a_angle before if loop(RAD) = '%2f'", a_angle);
         //RCLCPP_INFO(this->get_logger(), "scan_callback: a_angle before if loop(deg) = '%2f'", RAD2DEG(a_angle));
-
-        /*
-        if (angle_min_ > DEG2RAD(45)) 
-        {
-            a_angle = angle_min_;
-            //a_index = 0;
-        } 
-        else 
-        {
-            //a_index = (unsigned int)(floor((DEG2RAD(45) - angle_min_) / angle_increment_));
-        }
-        */
-
         //RCLCPP_INFO(this->get_logger(), "scan_callback:a_angle(RAD) = '%2f'", a_angle);
         //RCLCPP_INFO(this->get_logger(), "scan_callback:b_angle(RAD) = '%2f'", b_angle);
         //RCLCPP_INFO(this->get_logger(), "scan_callback:a_index = '%2f'", a_index);  
 
-        
         /* "\alpha=\mbox{tan}^{-1}\left(\frac{a\mbox{cos}(\theta)-b}{a\mbox{sin}(\theta)}\right)"
         calucation in TeX Commands*/
         
@@ -228,19 +217,19 @@ private:
 
         alpha_ = atan(upperValue/lowerValue); // Calculate the arctangent of the values above
         Dt_ = b_range*cos(alpha_);
-        double error = 1 - Dt_; // TODO: replace with error calculated by get_error()
 
-        // double b_range = get_range();
+        // Calculate error with lookahead distance
+        double error = get_error(Dt_);
+        
+        double velocity = 0.5; // TODO: calculate desired car velocity based on error
 
+        // actuate the car with PID  
+        pid_control(error, velocity); 
+        
         RCLCPP_INFO(this->get_logger(), "scan_callback: a range returned = '%2f'", a_range);
         RCLCPP_INFO(this->get_logger(), "scan_callback: b range returned = '%2f'", b_range);
         RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated Dt = B - A  = '%2f'", Dt_);
         RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated error = 1 - Dt  = '%2f'", error);
-
-        double velocity = 0.0; // TODO: calculate desired car velocity based on error
-        // TODO: actuate the car with PID
-
-        pid_control(error, velocity);
         
     }
     //unsigned int a_index;
