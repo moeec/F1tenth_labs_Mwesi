@@ -48,6 +48,7 @@ private:
     double a_angle;
     double alpha_;
     double Dt_;
+    double Dt_t1_;
     double prev_error_ = 0.0;
     rclcpp::Time t_start_time_;
     rclcpp::Time prev_t_start_time_;
@@ -102,7 +103,7 @@ private:
 
             }
         }
-        return 0.0;     
+        return 100.0;     
     }
 
     double get_error(double dist)
@@ -118,7 +119,7 @@ private:
             error: calculated error
         */
 
-        double Dtp1_= dist + 1.00*sin(alpha_);
+        double Dtp1_= DESIRED_DISTANCE_RIGHT - dist;
         RCLCPP_INFO(this->get_logger(), "get_error: dist = '%2f'", dist);
         RCLCPP_INFO(this->get_logger(), "get_error: dist + 1 = '%2f'", Dtp1_);
         
@@ -221,9 +222,10 @@ private:
 
         alpha_ = atan(upperValue/lowerValue); // Calculate the arctangent of the values above
         Dt_ = b_range*cos(alpha_);
+        Dt_t1_ = Dt_ + 1.00*sin(alpha_);
 
         // Calculate error with lookahead distance
-        double error = get_error( 1-Dt_);
+        double error = get_error(1-Dt_t1_);
         
         double velocity = 0.5; // TODO: calculate desired car velocity based on error
 
