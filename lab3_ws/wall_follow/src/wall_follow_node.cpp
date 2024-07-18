@@ -9,6 +9,8 @@
 #define PI 3.1415927
 #define RAD2DEG(x) ((x)*180./PI)
 #define DEG2RAD(x) ((x)/180.0*PI)
+#define DESIRED_DISTANCE_RIGHT 1
+
 
 class WallFollow : public rclcpp::Node {
 
@@ -116,7 +118,7 @@ private:
             error: calculated error
         */
 
-        double Dtp1_= dist + 0.25*sin(alpha_);
+        double Dtp1_= dist + 1.00*sin(alpha_);
         RCLCPP_INFO(this->get_logger(), "get_error: dist = '%2f'", dist);
         RCLCPP_INFO(this->get_logger(), "get_error: dist + 1 = '%2f'", Dtp1_);
         
