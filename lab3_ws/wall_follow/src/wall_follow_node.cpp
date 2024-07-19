@@ -229,13 +229,14 @@ private:
         
         double velocity = 0.5; // TODO: calculate desired car velocity based on error
 
-        // actuate the car with PID  
-        pid_control(error, velocity); 
-        
         RCLCPP_INFO(this->get_logger(), "scan_callback: a range returned = '%2f'", a_range);
         RCLCPP_INFO(this->get_logger(), "scan_callback: b range returned = '%2f'", b_range);
         RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated Dt = B - A  = '%2f'", Dt_);
+        RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated Dt_t1_ = Dt_ + 1.00*sin(alpha_);  = '%2f'", Dt_t1_);
         RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated error = 1 - Dt  = '%2f'", error);
+
+        // actuate the car with PID  
+        pid_control(error, velocity); 
         
     }
     //unsigned int a_index;
