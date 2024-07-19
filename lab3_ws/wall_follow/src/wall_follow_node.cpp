@@ -121,7 +121,7 @@ private:
 
         double Dtp1_= DESIRED_DISTANCE_RIGHT - dist;
         RCLCPP_INFO(this->get_logger(), "get_error: dist = '%2f'", dist);
-        RCLCPP_INFO(this->get_logger(), "get_error: dist + 1 = '%2f'", Dtp1_);
+        RCLCPP_INFO(this->get_logger(), "get_error: 1 - dist = '%2f'", Dtp1_);
         
         return Dtp1_;
     }
