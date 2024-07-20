@@ -35,7 +35,7 @@ private:
     double kd = 0.001; 
     double ki = 0.005;
     double servo_offset = 0.0;
-    double prev_error = 0.0;
+    double prev_error_ = 0.0;
     double error = 0.0;
     double integral = 0.0;
 
@@ -49,7 +49,6 @@ private:
     double alpha_;
     double Dt_;
     double Dt_t1_;
-    double prev_error_ = 0.0;
     double delta_t_start_time;
     rclcpp::Time t_start_time_;
     rclcpp::Time prev_t_start_time_;
@@ -148,8 +147,8 @@ private:
         t_start_time_ = this->now();
         delta_t_start_time = t_start_time_.seconds() - prev_t_start_time_.seconds();
         integral += error * delta_t_start_time;
-        drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error) / delta_t_start_time + ki * integral);
-        prev_error = error;
+        drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error_) / delta_t_start_time + ki * integral);
+        prev_error_ = error;
         prev_t_start_time_ = t_start_time_;
 
         RCLCPP_INFO(this->get_logger(), "pid_control: t_start_time_ = '%2f'", t_start_time_);
