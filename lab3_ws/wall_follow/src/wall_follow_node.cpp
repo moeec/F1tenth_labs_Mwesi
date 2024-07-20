@@ -50,6 +50,7 @@ private:
     double Dt_;
     double Dt_t1_;
     double prev_error_ = 0.0;
+    double delta_t_start_time;
     rclcpp::Time t_start_time_;
     rclcpp::Time prev_t_start_time_;
 
@@ -145,7 +146,7 @@ private:
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
       
         t_start_time_ = this->now();
-        double delta_t_start_time = t_start_time_.seconds() - prev_t_start_time_.seconds();
+        delta_t_start_time = t_start_time_.seconds() - prev_t_start_time_.seconds();
         integral += error * delta_t_start_time;
         drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error) / delta_t_start_time + ki * integral);
         prev_error = error;
