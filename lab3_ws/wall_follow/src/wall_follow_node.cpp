@@ -103,7 +103,7 @@ private:
 
             }
         }
-        return 100.0;     
+        return 0.0;     
     }
 
     double get_error(double dist)
