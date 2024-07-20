@@ -35,7 +35,7 @@ private:
     double kd = 0.001; 
     double ki = 0.005;
     double servo_offset = 0.0;
-    double prev_error_ = 0.0;
+    double prev_error = 0.0;
     double error = 0.0;
     double integral = 0.0;
 
@@ -49,7 +49,7 @@ private:
     double alpha_;
     double Dt_;
     double Dt_t1_;
-    double delta_t_start_time;
+    double prev_error_ = 0.0;
     rclcpp::Time t_start_time_;
     rclcpp::Time prev_t_start_time_;
 
@@ -145,16 +145,16 @@ private:
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
       
         t_start_time_ = this->now();
-        delta_t_start_time = t_start_time_.seconds() - prev_t_start_time_.seconds();
+        double delta_t_start_time = t_start_time_.seconds() - prev_t_start_time_.seconds();
         integral += error * delta_t_start_time;
-        drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error_) / delta_t_start_time + ki * integral);
-        prev_error_ = error;
+        drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error) / delta_t_start_time + ki * integral);
+        prev_error = error;
         prev_t_start_time_ = t_start_time_;
 
         RCLCPP_INFO(this->get_logger(), "pid_control: t_start_time_ = '%2f'", t_start_time_);
         RCLCPP_INFO(this->get_logger(), "pid_control: delta_t_start_time = '%2f'", delta_t_start_time);
         RCLCPP_INFO(this->get_logger(), "pid_control: integral = '%2f'", integral);
-        RCLCPP_INFO(this->get_logger(), "pid_control: drive_msg.drive.steering_angle = '%2f'", drive_msg.drive.steering_angle);
+        RCLCPP_INFO(this->get_logger(), "pid_control: drive_msg.drive.steering_angle = '%2f'", DEG2RAD(drive_msg.drive.steering_angle));
         
 
         if (abs(drive_msg.drive.steering_angle) > DEG2RAD(20.0)) 
@@ -223,7 +223,7 @@ private:
 
         alpha_ = atan(upperValue/lowerValue); // Calculate the arctangent of the values above
         Dt_ = b_range*cos(alpha_);
-        Dt_t1_ = Dt_ + 1.00*sin(alpha_);
+        Dt_t1_ = Dt_ + 1.50*sin(alpha_);
 
         // Calculate error with lookahead distance
         double error = get_error(Dt_t1_);
