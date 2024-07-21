@@ -151,7 +151,7 @@ private:
         double P = kp * error;
 
         // Integral term
-        integral += error_ * delta_t_start_time;
+        integral += error * delta_t_start_time;
         double I = ki * integral;
 
         // Derivative term
@@ -171,6 +171,9 @@ private:
 
         RCLCPP_INFO(this->get_logger(), "pid_control: t_start_time_ = '%2f'", t_start_time_);
         RCLCPP_INFO(this->get_logger(), "pid_control: delta_t_start_time = '%2f'", delta_t_start_time);
+        RCLCPP_INFO(this->get_logger(), "pid_control: P = '%2f'", P); 
+        RCLCPP_INFO(this->get_logger(), "pid_control: I = '%2f'", I); 
+        RCLCPP_INFO(this->get_logger(), "pid_control: D = '%2f'", D);  
         RCLCPP_INFO(this->get_logger(), "pid_control: integral = '%2f'", integral);
         RCLCPP_INFO(this->get_logger(), "pid_control: drive_msg.drive.steering_angle = '%2f'", RAD2DEG(drive_msg.drive.steering_angle));
         
@@ -242,18 +245,20 @@ private:
         alpha_ = atan(upperValue/lowerValue); // Calculate the arctangent of the values above
         
         Dt_ = b_range*cos(alpha_);
-        Dt_t1_ = Dt_ + 1.50*sin(alpha_);
+        Dt_t1_ = Dt_ + 1.00*sin(alpha_);
 
         // Calculate error with lookahead distance
         double error = get_error(Dt_t1_);
         
         double velocity = 1.5; // TODO: calculate desired car velocity based on error
 
+        RCLCPP_INFO(this->get_logger(), "scan_callback: a angle returned = '%2f'", a_angle);
+        RCLCPP_INFO(this->get_logger(), "scan_callback: b angle returned = '%2f'", b_angle);
         RCLCPP_INFO(this->get_logger(), "scan_callback: a range returned = '%2f'", a_range);
         RCLCPP_INFO(this->get_logger(), "scan_callback: b range returned = '%2f'", b_range);
         RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated Dt = B - A  = '%2f'", Dt_);
         RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated Dt_t1_ = Dt_ + 1.00*sin(alpha_);  = '%2f'", Dt_t1_);
-        RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated error = 1 - Dt  = '%2f'", error);
+        RCLCPP_INFO(this->get_logger(), "scan_callback: Calculated error = 1 - Dt_t1  = '%2f'", error);
 
         // actuate the car with PID  
         pid_control(error, velocity); 
