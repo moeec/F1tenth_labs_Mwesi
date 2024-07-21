@@ -219,18 +219,18 @@ private:
         float a_range = get_range(range_data_, size, a_angle);
         float b_range = get_range(range_data_, size, b_angle);
 
-        //double upperValue = (a_range*cos(DEG2RAD(b_angle - a_angle))) - b_range;
-        //double lowerValue = a_range*sin(DEG2RAD(b_angle - a_angle));
+        double upperValue = (a_range*cos(DEG2RAD(b_angle - a_angle))) - b_range;
+        double lowerValue = a_range*sin(DEG2RAD(b_angle - a_angle));
 
-        //alpha_ = atan(upperValue/lowerValue); // Calculate the arctangent of the values above
-        alpha_ = atan((a_range * cos(b_angle - a_angle) - b_range) / (a_range * sin(b_angle - a_angle)));
+        alpha_ = atan(upperValue/lowerValue); // Calculate the arctangent of the values above
+        
         Dt_ = b_range*cos(alpha_);
         Dt_t1_ = Dt_ + 1.50*sin(alpha_);
 
         // Calculate error with lookahead distance
         double error = get_error(Dt_t1_);
         
-        double velocity = 0.5; // TODO: calculate desired car velocity based on error
+        double velocity = 1.5; // TODO: calculate desired car velocity based on error
 
         RCLCPP_INFO(this->get_logger(), "scan_callback: a range returned = '%2f'", a_range);
         RCLCPP_INFO(this->get_logger(), "scan_callback: b range returned = '%2f'", b_range);
