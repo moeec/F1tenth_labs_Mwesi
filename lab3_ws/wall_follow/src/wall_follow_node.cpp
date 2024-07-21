@@ -148,17 +148,23 @@ private:
         RCLCPP_INFO(this->get_logger(), "pid_control: prev_error_ (before) = '%2f'", prev_error_);
 
         // Proportional term
-        double P = Kp * error;
+        double P = kp * error;
 
         // Integral term
         integral += error_ * delta_t_start_time;
-        double I = Ki * integral;
+        double I = ki * integral;
 
         // Derivative term
-        double derivative = (error - prev_error) / delta_t_start_time;
-        double D = Kd * derivative;
+        double derivative = (error - prev_error_) / delta_t_start_time;
+        double D = kd * derivative;
         
+        /*
+        Older equation kept for archiving and comparison 
         drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error_) / delta_t_start_time + ki * integral);
+        */
+
+        drive_msg.drive.steering_angle = -(P + I + D);
+        
         prev_error_ = error;
         prev_t_start_time_ = t_start_time_;
         RCLCPP_INFO(this->get_logger(), "pid_control: prev_error_ (after) = '%2f'", prev_error_);
