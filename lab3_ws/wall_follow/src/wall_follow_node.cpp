@@ -152,7 +152,7 @@ private:
         double P = kp * error;
 
         // Integral term
-        integral += error * delta_t_start_time;
+        integral += prev_error_ * delta_t_start_time;
         RCLCPP_INFO(this->get_logger(), "pid_control: error_ (coming in) = '%2f'", error);
         RCLCPP_INFO(this->get_logger(), "pid_control: integral = '%2f'", integral);
         RCLCPP_INFO(this->get_logger(), "pid_control: delta_t_start_time = '%2f'", delta_t_start_time);
