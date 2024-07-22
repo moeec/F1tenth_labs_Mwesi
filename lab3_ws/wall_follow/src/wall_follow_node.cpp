@@ -168,7 +168,7 @@ private:
         drive_msg.drive.steering_angle = -(kp * error + kd * (error - prev_error_) / delta_t_start_time + ki * integral);
         */
 
-        drive_msg.drive.steering_angle = -(P + I + D);
+        drive_msg.drive.steering_angle = (P + I + D);
         
         prev_error_ = error;
         prev_t_start_time_ = t_start_time_;
