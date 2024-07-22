@@ -97,7 +97,7 @@ private:
                     //double diff = abs(angle - current_angle_); /for debugging
                     //RCLCPP_INFO(this->get_logger(), "Returning Range: abs(angle - current_angle_) = '%2f'", diff);     //for debugging
                     //RCLCPP_INFO(this->get_logger(), "Returning Range: angle_increment_ = '%2f'", angle_increment_);    //for debugging
-                    RCLCPP_INFO(this->get_logger(), "get_range: angle = '%2f'", current_angle_ );    //for debugging
+                    //RCLCPP_INFO(this->get_logger(), "get_range: angle = '%2f'", current_angle_ );    //for debugging
                     return returned_range;
                 }
 
@@ -218,10 +218,9 @@ private:
             None
         */
 
-        angle_increment_ = scan_msg->angle_increment;
-        angle_min_ = scan_msg->angle_min;
         auto range_data_ = scan_msg->ranges;
-        size = range_data_.size();
+
+       
 
         // b_index = (unsigned int)(floor((DEG2RAD(90) - angle_min_) / angle_increment_));
         b_angle = 90;        
@@ -238,8 +237,16 @@ private:
 
         /* "\alpha=\mbox{tan}^{-1}\left(\frac{a\mbox{cos}(\theta)-b}{a\mbox{sin}(\theta)}\right)"
         calucation in TeX Commands*/
-        
+
+        angle_increment_ = scan_msg->angle_increment;
+        angle_min_ = scan_msg->angle_min;
+        size = range_data_.size();
         float a_range = get_range(range_data_, size, a_angle);
+
+
+        angle_increment_ = scan_msg->angle_increment;
+        angle_min_ = scan_msg->angle_min;
+        size = range_data_.size();
         float b_range = get_range(range_data_, size, b_angle);
 
         double upperValue = (a_range*cos(DEG2RAD(b_angle - a_angle))) - b_range;
