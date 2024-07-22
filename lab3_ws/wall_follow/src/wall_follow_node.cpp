@@ -97,6 +97,7 @@ private:
                     //double diff = abs(angle - current_angle_); /for debugging
                     //RCLCPP_INFO(this->get_logger(), "Returning Range: abs(angle - current_angle_) = '%2f'", diff);     //for debugging
                     //RCLCPP_INFO(this->get_logger(), "Returning Range: angle_increment_ = '%2f'", angle_increment_);    //for debugging
+                    RCLCPP_INFO(this->get_logger(), "get_range: angle = '%2f'", current_angle_ );    //for debugging
                     return returned_range;
                 }
 
