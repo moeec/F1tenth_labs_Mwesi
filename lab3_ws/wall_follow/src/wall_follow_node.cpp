@@ -9,7 +9,7 @@
 #define PI 3.1415927
 #define RAD2DEG(x) ((x)*180./PI)
 #define DEG2RAD(x) ((x)/180.0*PI)
-#define DESIRED_DISTANCE_RIGHT 0.5
+#define DESIRED_DISTANCE_RIGHT 0.4
 
 
 class WallFollow : public rclcpp::Node {
@@ -31,8 +31,8 @@ public:
 
 private:
     // PID CONTROL PARAMS
-    double kp = 0.31;
-    double kd = 1.221; 
+    double kp = 0.310;
+    double kd = 2.000; 
     double ki = 0.005;
     double servo_offset = 0.0;
     double error = 0.0;
