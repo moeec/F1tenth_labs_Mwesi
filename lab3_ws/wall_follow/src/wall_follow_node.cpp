@@ -31,7 +31,7 @@ public:
 
 private:
     // PID CONTROL PARAMS
-    double kp = 1.31;
+    double kp = 0.31;
     double kd = 1.221; 
     double ki = 0.005;
     double servo_offset = 0.0;
