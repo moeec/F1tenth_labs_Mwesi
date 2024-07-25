@@ -14,6 +14,12 @@ public:
     ReactiveFollowGap() : Node("reactive_node")
     {
         /// TODO: create ROS subscribers and publishers
+
+        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
+
+        scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
+            "/scan", 10, std::bind(&WallFollow::scan_callback, this, std::placeholders::_1));
+
     }
 
 private:
@@ -58,6 +64,10 @@ private:
         // Find the best point in the gap 
 
         // Publish Drive message
+
+        auto range_data_ = scan_msg->ranges;
+
+        auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
     }
 
 
