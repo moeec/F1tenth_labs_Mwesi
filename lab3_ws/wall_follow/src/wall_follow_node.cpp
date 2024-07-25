@@ -11,7 +11,6 @@
 #define DEG2RAD(x) ((x)/180.0*PI)
 #define DESIRED_DISTANCE_RIGHT 0.4
 
-
 class WallFollow : public rclcpp::Node {
 
 public:
@@ -21,9 +20,6 @@ public:
 
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
 
-        /*ackermann_timer_ = this->create_wall_timer(
-            50ms, std::bind(&WallFollow::ackermann_callback, this)); */
-
         scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
             "/scan", 10, std::bind(&WallFollow::scan_callback, this, std::placeholders::_1));
 
@@ -31,13 +27,12 @@ public:
 
 private:
     // PID CONTROL PARAMS
-    double kp = 0.310;
-    double kd = 2.000; 
-    double ki = 0.005;
+    double kp = 0.250;
+    double kd = 6.550; 
+    double ki = 0.010;
     double servo_offset = 0.0;
     double error = 0.0;
     double integral = 0.0;
-
     
     // Additional Variables 
     double angle_increment_;
@@ -180,7 +175,6 @@ private:
 
         RCLCPP_INFO(this->get_logger(), "pid_control: drive_msg.drive.steering_angle = '%2f'", RAD2DEG(drive_msg.drive.steering_angle));
         
-
         if (abs(drive_msg.drive.steering_angle) > DEG2RAD(20.0)) 
         {
             drive_msg.drive.speed = 0.5;
@@ -219,12 +213,9 @@ private:
         */
 
         auto range_data_ = scan_msg->ranges;
-
        
-
-        // b_index = (unsigned int)(floor((DEG2RAD(90) - angle_min_) / angle_increment_));
         b_angle = 90;        
-        a_angle = 45;         
+        a_angle = 60.629;         
 
         //RCLCPP_INFO(this->get_logger(), "-----------------------scan_callback-----------------------------------");
         //RCLCPP_INFO(this->get_logger(), "scan_callback: b_index before if loop(RAD) = '%2f'", b_index);
@@ -274,11 +265,9 @@ private:
         pid_control(error, velocity); 
         
     }
-    //unsigned int a_index;
-    //unsigned int b_index;
+
 };
 int main(int argc, char ** argv) {
-    
     
     rclcpp::init(argc, argv);
     rclcpp::spin(std::make_shared<WallFollow>());
