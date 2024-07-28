@@ -25,6 +25,12 @@ public:
 private:
     std::string lidarscan_topic = "/scan";
     std::string drive_topic = "/drive";
+    double distance_;
+    double angle_;
+    double angle_increment_;
+    double current_angle_;
+    std::vector<double> ranges;
+
     /// TODO: create ROS subscribers and publishers
 
     void preprocess_lidar(float* ranges)
@@ -66,9 +72,25 @@ private:
         // Publish Drive message
 
         auto range_data_ = scan_msg->ranges;
-
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
-    }
+	ranges = std::vector<double>(std::begin(scan_msg.ranges), std::end(scan_msg.ranges));    
+
+        for (unsigned int i = 0; i < range_data.size(); i++)
+        {
+            distance_ = scan_msg->ranges[i];
+            angle_increment_ = scan_msg->angle_increment;
+            angle_ = scan_msg->angle_min;
+            current_angle_ = angle_ + angle_increment_ * i;
+
+            if (!std::isinf(distance_) && !std::isnan(distance_))
+            {
+		ranges[i] = scan_msg.range_max;
+             
+                RCLCPP_WARN(this->get_logger(), "Scan Distance is inf or NaN");
+            }
+
+	    
+        }
 
 
 
