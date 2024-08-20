@@ -88,8 +88,8 @@ private:
 
         min_angle_ = DEG2RAD(-70);
         max_angle_ = DEG2RAD(70);
-        unsigned int min_index = (unsigned int)(std::floor((min_angle_ - scan_msg.angle_min) / scan_msg.angle_increment));
-        unsigned int max_index = (unsigned int)(std::ceil((max_angle_ - scan_msg.angle_min) / scan_msg.angle_increment));
+        unsigned int min_index = (unsigned int)(std::floor((min_angle_ - scan_msg->angle_min) / scan_msg->angle_increment));
+        unsigned int max_index = (unsigned int)(std::ceil((max_angle_ - scan_msg->angle_min) / scan_msg->angle_increment));
 
         RCLCPP_INFO(this->get_logger(), "min_index = '%2f'",min_index);     //for debugging
 
@@ -99,9 +99,9 @@ private:
             {
                 ranges[i] = 0.0;
             } 
-            else if (range_data_[i] > scan_msg.range_max;) 
+            else if (range_data_[i] > scan_msg->range_max) 
             {
-                ranges[i] = scan_msg.range_max;
+                ranges[i] = scan_msg->range_max;
             }
         }
 
