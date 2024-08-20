@@ -4,8 +4,8 @@
   <name>wall_follow</name>
   <version>0.0.0</version>
   <description>f1tenth wall_follow lab</description>
-  <maintainer email="mwesideveloper@gmail.com">zzangupenn</maintainer>
-  <maintainer email="mwesideveloper@gmail.com">Hongrui Zheng</maintainer>
+  <maintainer email="mwesideveloper@gmail.com">mwesi</maintainer>
+  <maintainer email="mwesideveloper@gmail.com">mwesi</maintainer>
   <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
