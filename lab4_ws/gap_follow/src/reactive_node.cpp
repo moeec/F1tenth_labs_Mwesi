@@ -4,6 +4,11 @@
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
+
+#define PI 3.1415927
+#define RAD2DEG(x) ((x)*180./PI)
+#define DEG2RAD(x) ((x)/180.0*PI)
+
 /// CHECK: include needed ROS msg type headers and libraries
 
 class ReactiveFollowGap : public rclcpp::Node {
@@ -18,7 +23,7 @@ public:
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
 
         scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
-            "/scan", 10, std::bind(&WallFollow::scan_callback, this, std::placeholders::_1));
+            "/scan", 10, std::bind(&ReactiveFollowGap::lidar_callback, this, std::placeholders::_1));
 
     }
 
@@ -28,10 +33,14 @@ private:
     double distance_;
     double angle_;
     double angle_increment_;
+    double min_angle_;
+    double max_angle_;
     double current_angle_;
     std::vector<double> ranges;
 
-    /// TODO: create ROS subscribers and publishers
+    /// ROS subscribers and publishers
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
 
     void preprocess_lidar(float* ranges)
     {   
@@ -73,7 +82,33 @@ private:
 
         auto range_data_ = scan_msg->ranges;
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
-	ranges = std::vector<double>(std::begin(scan_msg.ranges), std::end(scan_msg.ranges));    
+	    //ranges = std::vector<double>(std::begin(scan_msg.ranges), std::end(scan_msg.ranges));
+
+        // Simplify lidar FOV
+
+        min_angle_ = DEG2RAD(-70);
+        max_angle_ = DEG2RAD(70);
+        unsigned int min_index = (unsigned int)(std::floor((min_angle_ - scan_msg.angle_min) / scan_msg.angle_increment));
+        unsigned int max_index = (unsigned int)(std::ceil((max_angle_ - scan_msg.angle_min) / scan_msg.angle_increment));
+
+        RCLCPP_INFO(this->get_logger(), "min_index = '%2f'",min_index);     //for debugging
+
+        for (unsigned int i = min_index; i <= max_index; i++) 
+        {
+            if (std::isinf(range_data_[i]) || std::isnan(range_data_[i])) 
+            {
+                ranges[i] = 0.0;
+            } 
+            else if (range_data_[i] > scan_msg.range_max;) 
+            {
+                ranges[i] = scan_msg.range_max;
+            }
+        }
+
+
+
+     /* older method used in previous code.
+
 
         for (unsigned int i = 0; i < range_data.size(); i++)
         {
@@ -91,10 +126,12 @@ private:
 
 	    
         }
-
-
+    */
+    }
 
 };
+
+
 int main(int argc, char ** argv) {
     rclcpp::init(argc, argv);
     rclcpp::spin(std::make_shared<ReactiveFollowGap>());
