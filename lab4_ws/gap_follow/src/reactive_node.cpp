@@ -88,10 +88,16 @@ private:
 
         min_angle_ = DEG2RAD(-70);
         max_angle_ = DEG2RAD(70);
+
+        RCLCPP_INFO(this->get_logger(), "lidar_callback: min_angle = DEG2RAD(-70) = '%2f'", min_angle_); //for debugging
+        RCLCPP_INFO(this->get_logger(), "lidar_callback: scan min_angle = DEG2RAD(-70) = '%2f'", scan_msg->angle_min); //for debugging
+        RCLCPP_INFO(this->get_logger(), "lidar_callback: max_angle = DEG2RAD(-70) = '%2f'", max_angle_); //for debugging
+        
         unsigned int min_index = (unsigned int)(std::floor((min_angle_ - scan_msg->angle_min) / scan_msg->angle_increment));
         unsigned int max_index = (unsigned int)(std::ceil((max_angle_ - scan_msg->angle_min) / scan_msg->angle_increment));
 
-        RCLCPP_INFO(this->get_logger(), "min_index = '%2f'",min_index);     //for debugging
+        RCLCPP_INFO(this->get_logger(), "lidar_callback: min_index = '%2f'", min_index); //for debugging
+        RCLCPP_INFO(this->get_logger(), "lidar_callback: max_index = '%2f'", max_index); //for debugging
 
         for (unsigned int i = min_index; i <= max_index; i++) 
         {
