@@ -92,23 +92,27 @@ private:
         RCLCPP_INFO(this->get_logger(), "lidar_callback: min_angle = DEG2RAD(-70) = '%2f'", min_angle_); //for debugging
         RCLCPP_INFO(this->get_logger(), "lidar_callback: scan min_angle = DEG2RAD(-70) = '%2f'", scan_msg->angle_min); //for debugging
         RCLCPP_INFO(this->get_logger(), "lidar_callback: max_angle = DEG2RAD(-70) = '%2f'", max_angle_); //for debugging
-	RCLCPP_INFO(this->get_logger(), "lidar_callback: angle_increment = '%2f'", scan_msg->angle_increment); //for debugging
         
-        unsigned int min_index = (unsigned int)(std::floor((min_angle_ - scan_msg->angle_min) / scan_msg->angle_increment));
-        unsigned int max_index = (unsigned int)(std::ceil((max_angle_ - scan_msg->angle_min) / scan_msg->angle_increment));
 
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: min_index = '%2f'", min_index); //for debugging
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: max_index = '%2f'", max_index); //for debugging
+        
+        //unsigned int min_index = (unsigned int)(std::floor((min_angle_ - scan_msg->angle_min) / scan_msg->angle_increment));
+        //unsigned int max_index = (unsigned int)(std::ceil((max_angle_ - scan_msg->angle_min) / scan_msg->angle_increment));
 
-        for (unsigned int i = min_index; i <= max_index; i++) 
+        //RCLCPP_INFO(this->get_logger(), "lidar_callback: min_index = '%2f'", min_index); //for debugging
+        //RCLCPP_INFO(this->get_logger(), "lidar_callback: max_index = '%2f'", max_index); //for debugging
+
+        for (unsigned int i = 0 ; i <= range_data_.size(); i++) 
         {
             if (std::isinf(range_data_[i]) || std::isnan(range_data_[i])) 
             {
                 ranges[i] = 0.0;
+                angle_increment_ = scan_msg->angle_increment;
+
             } 
             else if (range_data_[i] > scan_msg->range_max) 
             {
                 ranges[i] = scan_msg->range_max;
+                angle_increment_ = scan_msg->angle_increment;
             }
         }
 
