@@ -116,13 +116,13 @@ private:
                 {
                     
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: Range < 0.03 = '%f'", distance_);
-                        RCLCPP_INFO(this->get_logger(), "lidar_callback: Angle = '%f'", current_angle_);
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: Angle        = '%f'", current_angle_);
                         //ackermann_drive.drive.speed = 0.0;
                 }
                 else
                 {
-                    RCLCPP_INFO(this->get_logger(), "lidar_callback: Range > 0.03 (Possible GAP!) = '%f'", distance_);
-                    RCLCPP_INFO(this->get_logger(), "lidar_callback: Angle (Possible GAP!) = '%f'", current_angle_);
+                    RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Range: = '%f'", distance_);
+                    RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Angle: = '%f'", current_angle_);
                 }
             }
             
