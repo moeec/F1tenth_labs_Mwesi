@@ -102,45 +102,32 @@ private:
         //RCLCPP_INFO(this->get_logger(), "lidar_callback: min_index = '%2f'", min_index); //for debugging
         //RCLCPP_INFO(this->get_logger(), "lidar_callback: max_index = '%2f'", max_index); //for debugging
 
-        for (unsigned int i = 0 ; i <= range_data_.size(); i++) 
-        {
-            if (std::isinf(range_data_[i]) || std::isnan(range_data_[i])) 
-            {
-                ranges[i] = 0.0;
-                angle_increment_ = scan_msg->angle_increment;
-
-            } 
-            else if (range_data_[i] > scan_msg->range_max) 
-            {
-                ranges[i] = scan_msg->range_max;
-                angle_increment_ = scan_msg->angle_increment;
-            }
-        }
-
-
-
-     /* older method used in previous code.
-
-
-        for (unsigned int i = 0; i < range_data.size(); i++)
+        for (unsigned int i = 0; i < range_data_.size(); i++)
         {
             distance_ = scan_msg->ranges[i];
             angle_increment_ = scan_msg->angle_increment;
             angle_ = scan_msg->angle_min;
             current_angle_ = angle_ + angle_increment_ * i;
+            //range_rate_ = cos(current_angle_) * v_x + sin(current_angle_) * v_y;                               
 
             if (!std::isinf(distance_) && !std::isnan(distance_))
             {
-		ranges[i] = scan_msg.range_max;
-             
-                RCLCPP_WARN(this->get_logger(), "Scan Distance is inf or NaN");
+                if (distance_ < 0.03)    
+                {
+                    
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: Range < 0.03 = '%f'", distance_);
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: Angle = '%f'", current_angle_);
+                        //ackermann_drive.drive.speed = 0.0;
+                }
+                else
+                {
+                    RCLCPP_INFO(this->get_logger(), "lidar_callback: Range > 0.03 (Possible GAP!) = '%f'", distance_);
+                    RCLCPP_INFO(this->get_logger(), "lidar_callback: Angle (Possible GAP!) = '%f'", current_angle_);
+                }
             }
-
-	    
+            
         }
-    */
     }
-
 };
 
 
