@@ -105,7 +105,7 @@ private:
 
 
         //  Find closest & furthest detected point (LiDAR)
-        double min_range = 0.25;
+        double min_range = 0.025;
         //double max_range = scan_msg->range_max;
 
 
@@ -129,8 +129,8 @@ private:
                         RCLCPP_INFO(this->get_logger(), "range = '%f'", range_data_);
                         RCLCPP_INFO(this->get_logger(), "-------------------------------------------------------------------------------------------------------");
                         range_data_[i] = 0;
-                        drive_msg.drive.speed = 2.0;
-                        ackermann_publisher_->publish(drive_msg);
+                        //drive_msg.drive.speed = 2.0;
+                        //ackermann_publisher_->publish(drive_msg);
                 }
                 else
                 {
