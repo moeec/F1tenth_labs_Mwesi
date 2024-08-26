@@ -107,6 +107,7 @@ private:
         double min_range = scan_msg->range_min;
         double max_range = scan_msg->range_max;
 
+
         for (unsigned int i = 0; i < range_data_.size(); i++)
         {
             distance_ = scan_msg->ranges[i];
@@ -121,7 +122,8 @@ private:
                 {
                     
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range < min_range = '%f'", distance_);
-                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle        = '%f'", current_angle_);
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(rads)        = '%f'", current_angle_);
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(deg)        = '%f'", RAD2DEG(current_angle_));
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! range_data_        = '%f'", range_data_);
                         range_data_[i] = 0;
                         drive_msg.drive.speed = 2.0;
