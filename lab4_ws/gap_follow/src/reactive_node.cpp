@@ -118,13 +118,13 @@ private:
 
             if (!std::isinf(distance_) && !std::isnan(distance_))
             {
-                if (range_data_[i] < min_range && scan_min_angle_ < min_angle_)    
+                if (range_data_[i] < min_range && scan_min_angle_ > min_angle_)    
                 {
                     
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range < min_range = '%f'", distance_);
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(rads)        = '%f'", current_angle_);
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(deg)        = '%f'", RAD2DEG(current_angle_));
-                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! range_data_        = '%f'", range_data_);
+                        RCLCPP_INFO(this->get_logger(), "range = '%f'", range_data_);
                         RCLCPP_INFO(this->get_logger(), "-------------------------------------------------------------------------------------------------------");
                         range_data_[i] = 0;
                         drive_msg.drive.speed = 2.0;
