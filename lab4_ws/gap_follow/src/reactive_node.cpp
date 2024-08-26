@@ -125,13 +125,16 @@ private:
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(rads)        = '%f'", current_angle_);
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(deg)        = '%f'", RAD2DEG(current_angle_));
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! range_data_        = '%f'", range_data_);
+                        RCLCPP_INFO(this->get_logger(), "-------------------------------------------------------------------------------------------------------");
                         range_data_[i] = 0;
                         drive_msg.drive.speed = 2.0;
+                        ackermann_publisher_->publish(drive_msg);
                 }
                 else
                 {
                     RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Range: = '%f'", distance_);
                     RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Angle: = '%f'", current_angle_);
+                    RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(deg)        = '%f'", RAD2DEG(current_angle_));
                 }
             }
             
