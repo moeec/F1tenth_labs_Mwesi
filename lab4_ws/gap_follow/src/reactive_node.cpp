@@ -32,6 +32,7 @@ private:
     std::string drive_topic = "/drive";
     double distance_;
     double scan_min_angle_;
+    double scan_max_angle_;
     double angle_increment_;
     double min_angle_;
     double max_angle_;
@@ -113,12 +114,13 @@ private:
             distance_ = scan_msg->ranges[i];
             angle_increment_ = scan_msg->angle_increment;
             scan_min_angle_ = scan_msg->angle_min;
+            scan_max_angle_ = scan_msg->angle_max;
             current_angle_ = scan_min_angle_ + angle_increment_ * i;
             //range_rate_ = cos(current_angle_) * v_x + sin(current_angle_) * v_y;                               
 
-            if (!std::isinf(distance_) && !std::isnan(distance_))
+            if (!std::isinf(distance_) && !std::isnan(distance_) && current_angle_ > min_angle_ && current_angle_ < max_angle_)
             {
-                if (range_data_[i] < min_range && scan_min_angle_ > min_angle_)    
+                if (range_data_[i] < min_range)   
                 {
                     
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range < min_range = '%f'", distance_);
