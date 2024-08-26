@@ -105,8 +105,8 @@ private:
 
 
         //  Find closest & furthest detected point (LiDAR)
-        double min_range = scan_msg->range_min;
-        double max_range = scan_msg->range_max;
+        double min_range = 0.25;
+        //double max_range = scan_msg->range_max;
 
 
         for (unsigned int i = 0; i < range_data_.size(); i++)
