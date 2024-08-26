@@ -31,7 +31,7 @@ private:
     std::string lidarscan_topic = "/scan";
     std::string drive_topic = "/drive";
     double distance_;
-    double angle_;
+    double scan_min_angle_;
     double angle_increment_;
     double min_angle_;
     double max_angle_;
@@ -102,22 +102,29 @@ private:
         //RCLCPP_INFO(this->get_logger(), "lidar_callback: min_index = '%2f'", min_index); //for debugging
         //RCLCPP_INFO(this->get_logger(), "lidar_callback: max_index = '%2f'", max_index); //for debugging
 
+
+        //  Find closest & furthest detected point (LiDAR)
+        double min_range = scan_msg->range_min;
+        double max_range = scan_msg->range_max;
+
         for (unsigned int i = 0; i < range_data_.size(); i++)
         {
             distance_ = scan_msg->ranges[i];
             angle_increment_ = scan_msg->angle_increment;
-            angle_ = scan_msg->angle_min;
-            current_angle_ = angle_ + angle_increment_ * i;
+            scan_min_angle_ = scan_msg->angle_min;
+            current_angle_ = scan_min_angle_ + angle_increment_ * i;
             //range_rate_ = cos(current_angle_) * v_x + sin(current_angle_) * v_y;                               
 
             if (!std::isinf(distance_) && !std::isnan(distance_))
             {
-                if (distance_ < 0.03)    
+                if (range_data_[i] < min_range && scan_min_angle_ < min_angle_)    
                 {
                     
-                        RCLCPP_INFO(this->get_logger(), "lidar_callback: Range < 0.03 = '%f'", distance_);
-                        RCLCPP_INFO(this->get_logger(), "lidar_callback: Angle        = '%f'", current_angle_);
-                        //ackermann_drive.drive.speed = 0.0;
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range < min_range = '%f'", distance_);
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle        = '%f'", current_angle_);
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! range_data_        = '%f'", range_data_);
+                        range_data_[i] = 0;
+                        drive_msg.drive.speed = 2.0;
                 }
                 else
                 {
