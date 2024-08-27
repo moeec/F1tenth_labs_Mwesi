@@ -138,10 +138,10 @@ private:
                     RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Angle: = '%f'", current_angle_);
                     RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Current Angle(deg)        = '%f'", RAD2DEG(current_angle_));
                 }
-            }
-
-            RCLCPP_INFO(this->get_logger(), "lidar_callback: range_data '%f'", range_data_);   
+            }   
         }
+	    
+        RCLCPP_INFO(this->get_logger(), "lidar_callback: range_data '%f'", range_data_);
     }
 };
 
