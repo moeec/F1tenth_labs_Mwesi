@@ -124,9 +124,8 @@ private:
                 {
                     
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! i value is now             = '%f'", i);
-                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range range                = '%f'", range_data_[i]);
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range & Angle(deg)         = '%f' at '%f'", range_data_[i], RAD2DEG(current_angle_));
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(rads)        = '%f'", current_angle_);
-                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(deg)         = '%f'", RAD2DEG(current_angle_));
                         //RCLCPP_INFO(this->get_logger(), "range = '%f'", range_data_);
                         RCLCPP_INFO(this->get_logger(), "Setting above to have range_data------------------------------------------------------------------------");
                         range_data_[i] = 0;
@@ -143,9 +142,12 @@ private:
             }   
         }
 
+        RCLCPP_INFO(this->get_logger(), "----------------------------------------------------------------------------------------------------------------------");
+
         for (unsigned int i = 0; i < range_data_.size(); i++)
         {
-            RCLCPP_INFO(this->get_logger(), "lidar_callback: Final range_data '%f'", range_data_[i]);
+            RCLCPP_INFO(this->get_logger(), "| lidar_callback: Final range_data & Angle(deg)             = '%f' at '%f' |", range_data_[i], RAD2DEG(current_angle_));
+
         }
 	    
         
