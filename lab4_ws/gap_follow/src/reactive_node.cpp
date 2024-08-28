@@ -152,10 +152,10 @@ private:
 
         for (unsigned int i = 0; i < range_data_.size(); i++)
         {
-            RCLCPP_INFO(this->get_logger(), "| lidar_callback: Final range_data & Angle(deg)                = '%f'm at '%f' degrees |", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i  ));
+            RCLCPP_INFO(this->get_logger(), "| lidar_callback: Final range_data & Angle(deg)                = '%f'm at '%f' degrees |", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i));
             
             // Publish marker for the current angle
-            publish_marker(current_angle_);
+            publish_marker(scan_min_angle_ + angle_increment_ * i);
 
         }
 	    
@@ -165,7 +165,7 @@ private:
     void publish_marker(double angle) 
     {
         visualization_msgs::msg::Marker marker;
-        marker.header.frame_id = "laser_frame";
+        marker.header.frame_id = "/map";
         marker.header.stamp = this->now();
         marker.ns = "lidar_scan";
         marker.id = 0;
