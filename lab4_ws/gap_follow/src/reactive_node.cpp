@@ -123,12 +123,14 @@ private:
                 if (range_data_[i] < min_range)   
                 {
                     
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! i value is now             = '%f'", i);
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range range                = '%f'", range_data_[i]);
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(rads)        = '%f'", current_angle_);
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(deg)         = '%f'", RAD2DEG(current_angle_));
                         //RCLCPP_INFO(this->get_logger(), "range = '%f'", range_data_);
-                        //RCLCPP_INFO(this->get_logger(), "-------------------------------------------------------------------------------------------------------");
+                        RCLCPP_INFO(this->get_logger(), "Setting above to have range_data------------------------------------------------------------------------");
                         range_data_[i] = 0;
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! New Range range                = '%f'", range_data_[i]);
                         //drive_msg.drive.speed = 2.0;
                         //ackermann_publisher_->publish(drive_msg);
                 }
@@ -140,8 +142,13 @@ private:
                 }
             }   
         }
+
+        for (unsigned int i = 0; i < range_data_.size(); i++)
+        {
+            RCLCPP_INFO(this->get_logger(), "lidar_callback: Final range_data '%f'", range_data_[i]);
+        }
 	    
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: range_data '%f'", range_data_);
+        
     }
 };
 
