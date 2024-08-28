@@ -146,7 +146,7 @@ private:
 
         for (unsigned int i = 0; i < range_data_.size(); i++)
         {
-            RCLCPP_INFO(this->get_logger(), "| lidar_callback: Final range_data & Angle(deg)                = '%f' at '%f' |", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i  ));
+            RCLCPP_INFO(this->get_logger(), "| lidar_callback: Final range_data & Angle(deg)                = '%f'm at '%f' degrees |", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i  ));
 
         }
 	    
