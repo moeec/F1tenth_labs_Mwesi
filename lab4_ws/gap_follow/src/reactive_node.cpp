@@ -96,10 +96,10 @@ private:
         min_angle_ = DEG2RAD(-70);
         max_angle_ = DEG2RAD(70);
 
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: min_angle = DEG2RAD(-70) = '%2f'", min_angle_); //for debugging
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: scan min_angle = DEG2RAD(-70) = '%2f'", scan_msg->angle_min); //for debugging
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: max_angle = DEG2RAD(-70) = '%2f'", max_angle_); //for debugging
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: scan_msg->angle_increment = '%2f'", scan_msg->angle_increment); //for debugging
+        //RCLCPP_INFO(this->get_logger(), "lidar_callback: min_angle = DEG2RAD(-70) = '%2f'", min_angle_); //for debugging
+        //RCLCPP_INFO(this->get_logger(), "lidar_callback: scan min_angle = DEG2RAD(-70) = '%2f'", scan_msg->angle_min); //for debugging
+        //RCLCPP_INFO(this->get_logger(), "lidar_callback: max_angle = DEG2RAD(-70) = '%2f'", max_angle_); //for debugging
+        //RCLCPP_INFO(this->get_logger(), "lidar_callback: scan_msg->angle_increment = '%2f'", scan_msg->angle_increment); //for debugging
         
 
         
@@ -131,8 +131,6 @@ private:
                     
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! i value is now             = '%f'", i);
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range & Angle(deg)         = '%f' at '%f'", range_data_[i], RAD2DEG(current_angle_));
-                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Current Angle(rads)        = '%f'", current_angle_);
-                        //RCLCPP_INFO(this->get_logger(), "range = '%f'", range_data_);
                         RCLCPP_INFO(this->get_logger(), "Setting above to have range_data------------------------------------------------------------------------");
                         range_data_[i] = 0;
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! New Range range            = '%f'", range_data_[i]);
