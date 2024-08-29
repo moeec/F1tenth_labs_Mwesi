@@ -5,6 +5,30 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
+#include <limits>  // For std::numeric_limits
+
+// Initialize the smallest value to the largest possible float value
+float smallest_range = std::numeric_limits<float>::max();
+
+for (unsigned int i = 0; i < range_data_.size(); i++)
+{
+    float current_range = range_data_[i];
+    
+    // Update smallest_range if the current_range is smaller
+    if (current_range < smallest_range)
+    {
+        smallest_range = current_range;
+    }
+    
+    RCLCPP_INFO(this->get_logger(), "| lidar_callback: Final range_data & Angle(deg) = '%f' m at '%f' degrees |", current_range, RAD2DEG(scan_min_angle_ + angle_increment_ * i));
+    
+    // Publish marker for the current angle used for debugging
+    publish_marker(scan_min_angle_ + angle_increment_ * i);
+}
+
+// After the loop, you can use smallest_range as needed
+RCLCPP_INFO(this->get_logger(), "Smallest range value: '%f' meters", smallest_range);
+
 
 #define PI 3.1415927
 #define RAD2DEG(x) ((x)*180./PI)
@@ -89,6 +113,7 @@ private:
 
         auto range_data_ = scan_msg->ranges;
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
+	double rbs = 150;
 	    //ranges = std::vector<double>(std::begin(scan_msg.ranges), std::end(scan_msg.ranges));
 
         // Simplify lidar FOV
@@ -114,6 +139,11 @@ private:
         double min_range = 0.025;
         //double max_range = scan_msg->range_max;
 
+	// Initialize the smallest and largest values
+        float smallest_range = std::numeric_limits<float>::max();
+        float largest_range = std::numeric_limits<float>::lowest();
+
+
 
         for (unsigned int i = 0; i < range_data_.size(); i++)
         {
@@ -126,37 +156,52 @@ private:
 
             if (!std::isinf(distance_) && !std::isnan(distance_) && current_angle_ > min_angle_ && current_angle_ < max_angle_)
             {
-                if (range_data_[i] < min_range)   
+                if (range_data_[i] < smallest_range)   
                 {
                     
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! i value is now             = '%f'", i);
                         RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range & Angle(deg)         = '%f' at '%f'", range_data_[i], RAD2DEG(current_angle_));
-                        RCLCPP_INFO(this->get_logger(), "Setting above to have range_data------------------------------------------------------------------------");
-                        range_data_[i] = 0;
-                        RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! New Range range            = '%f'", range_data_[i]);
+                        RCLCPP_INFO(this->get_logger(), "----------------------ELIMINATING NO GAPS AND SETTING TO ZERO--------------------------------------------------");
+
+			float current_range = range_data_[i];
+    
+                        // Update smallest_range if the current_range is smaller
+                        if (current_range < smallest_range)
+                        {
+				smallest_range = current_range;
+                        }
+
+                        // Update largest_range if the current_range is larger
+                       if (current_range > largest_range)
+                       {
+			       largest_range = current_range;
+		       }
+			range_data_[i] = 0;
+			RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! New Range range            = '%f'", range_data_[i]);
                         //drive_msg.drive.speed = 2.0;
                         //ackermann_publisher_->publish(drive_msg);
                 }
                 else
                 {
-                    //RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Range: = '%f'", distance_);
-                    //RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Angle: = '%f'", current_angle_);
-                    //RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Current Angle(deg)        = '%f'", RAD2DEG(current_angle_));
+                        RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Range: = '%f' at '%f'", range_data_[i], RAD2DEG(current_angle_));
+			
+			// After the loop, you can use smallest_range and largest_range as needed
+                        RCLCPP_INFO(this->get_logger(), "Smallest range value: '%f' meters", smallest_range);
+                        RCLCPP_INFO(this->get_logger(), "Largest range value: '%f' meters", largest_range);
+
                 }
             }   
         }
 
-        RCLCPP_INFO(this->get_logger(), "-----------------------------------------------------------------------------------------------------------------------");
+        RCLCPP_INFO(this->get_logger(), "***********************************DISPLAYING FULL FINAL RANGE MEASUREMENTS BELOW********************************************");
+
+	// Initialize the smallest value to the largest possible float value
+        float smallest_range = std::numeric_limits<float>::max();
 
         for (unsigned int i = 0; i < range_data_.size(); i++)
         {
             RCLCPP_INFO(this->get_logger(), "| lidar_callback: Final range_data & Angle(deg)                = '%f'm at '%f' degrees |", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i));
-            
-            // Publish marker for the current angle
-            publish_marker(scan_min_angle_ + angle_increment_ * i);
-
-        }
-	    
+	}   
         
     }
 
