@@ -187,14 +187,14 @@ private:
                 else
                 {
                     RCLCPP_INFO(this->get_logger(), "lidar_callback: Possible GAP! Range: = '%f' at '%f'", range_data_[i], RAD2DEG(current_angle_));
-			
-			        // After the loop, you can use smallest_range and largest_range as needed
-                    RCLCPP_INFO(this->get_logger(), "Smallest range value: '%f' meters", smallest_range);
-                    RCLCPP_INFO(this->get_logger(), "Largest range value: '%f' meters", largest_range);
 
                 }
             }   
         }
+
+        // After the loop, you can use smallest_range and largest_range as needed
+        RCLCPP_INFO(this->get_logger(), "Smallest range value: '%f' meters", smallest_range);
+        RCLCPP_INFO(this->get_logger(), "Largest range value: '%f' meters", largest_range);
 
         RCLCPP_INFO(this->get_logger(), "***********************************DISPLAYING FULL FINAL RANGE MEASUREMENTS BELOW********************************************");
 
