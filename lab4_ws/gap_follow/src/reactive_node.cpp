@@ -142,15 +142,17 @@ private:
             scan_min_angle_ = scan_msg->angle_min;
             scan_max_angle_ = scan_msg->angle_max;
             current_angle_ = scan_min_angle_ + angle_increment_ * i;
+            
+            // Keeping track of for loop 
+            RCLCPP_INFO(this->get_logger(), "lidar_callback: i value is now             = '%d'", i);
 
             // Visual used for debug (Publish marker for the current angle)
             publish_marker(largest_range_indx);                              
 
             if (!std::isinf(distance_) && !std::isnan(distance_) && current_angle_ > min_angle_ && current_angle_ < max_angle_)
             {
-                RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! i value is now             = '%f'", i);
-                RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range & Angle(deg)         = '%f' at '%f'", range_data_[i], RAD2DEG(current_angle_));
-                RCLCPP_INFO(this->get_logger(), "---------------------------ELIMINATING NO GAPS AND SETTING TO ZERO--------------------------------------------------");
+                //RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range & Angle(deg)         = '%f' at '%f'", range_data_[i], RAD2DEG(current_angle_));
+                //RCLCPP_INFO(this->get_logger(), "---------------------------ELIMINATING NO GAPS AND SETTING TO ZERO--------------------------------------------------");
     
                 // Update smallest_range if the current_range is smaller
                 if (range_data_[i] < smallest_range)
@@ -180,8 +182,12 @@ private:
 
         for (unsigned int i = 0; i < range_data_.size(); i++)
         {
-            RCLCPP_INFO(this->get_logger(), "* lidar_callback: Final range_data & Angle(deg; negative is to the right of front) = '%f'm at '%f' degrees *", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i));
-
+            current_angle_ = scan_min_angle_ + angle_increment_ * i;
+            if (current_angle_ > min_angle_ && current_angle_ < max_angle_)
+            {
+                RCLCPP_INFO(this->get_logger(), "* lidar_callback: Final range_data & Angle(deg; negative is to the right of front) = '%f'm at '%f' degrees *", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i));
+            }
+            
         }
            
     }
