@@ -7,28 +7,9 @@
 #include "visualization_msgs/msg/marker.hpp"
 #include <limits>  // For std::numeric_limits
 
-// Initialize the smallest value to the largest possible float value
+// Initialize the smallest and largest values
 float smallest_range = std::numeric_limits<float>::max();
-
-for (unsigned int i = 0; i < range_data_.size(); i++)
-{
-    float current_range = range_data_[i];
-    
-    // Update smallest_range if the current_range is smaller
-    if (current_range < smallest_range)
-    {
-        smallest_range = current_range;
-    }
-    
-    RCLCPP_INFO(this->get_logger(), "| lidar_callback: Final range_data & Angle(deg) = '%f' m at '%f' degrees |", current_range, RAD2DEG(scan_min_angle_ + angle_increment_ * i));
-    
-    // Publish marker for the current angle used for debugging
-    publish_marker(scan_min_angle_ + angle_increment_ * i);
-}
-
-// After the loop, you can use smallest_range as needed
-RCLCPP_INFO(this->get_logger(), "Smallest range value: '%f' meters", smallest_range);
-
+float largest_range = std::numeric_limits<float>::lowest();
 
 #define PI 3.1415927
 #define RAD2DEG(x) ((x)*180./PI)
@@ -93,6 +74,37 @@ private:
         return;
     }
 
+    void publish_marker(double angle) 
+    {
+        visualization_msgs::msg::Marker marker;
+        marker.header.frame_id = "/map";
+        marker.header.stamp = this->now();
+        marker.ns = "lidar_scan";
+        marker.id = 0;
+        marker.type = visualization_msgs::msg::Marker::SPHERE;
+        marker.action = visualization_msgs::msg::Marker::ADD;
+
+        marker.pose.position.x = cos(angle);
+        marker.pose.position.y = sin(angle);
+        marker.pose.position.z = 0.0;
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+
+        marker.scale.x = 0.1;
+        marker.scale.y = 0.1;
+        marker.scale.z = 0.1;
+
+        marker.color.a = 1.0;
+        marker.color.r = 1.0;
+        marker.color.g = 0.0;
+        marker.color.b = 0.0;
+
+        marker.lifetime = rclcpp::Duration(0.1);
+
+        marker_pub_->publish(marker);
+    }
 
     void lidar_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
     {   
@@ -136,12 +148,6 @@ private:
         //  Find closest & furthest detected point (LiDAR)
         double min_range = 0.025;
         //double max_range = scan_msg->range_max;
-
-	    // Initialize the smallest and largest values
-        float smallest_range = std::numeric_limits<float>::max();
-        float largest_range = std::numeric_limits<float>::lowest();
-
-
 
         for (unsigned int i = 0; i < range_data_.size(); i++)
         {
@@ -192,47 +198,17 @@ private:
 
         RCLCPP_INFO(this->get_logger(), "***********************************DISPLAYING FULL FINAL RANGE MEASUREMENTS BELOW********************************************");
 
-	    // Initialize the smallest value to the largest possible float value
-        float smallest_range = std::numeric_limits<float>::max();
-
         for (unsigned int i = 0; i < range_data_.size(); i++)
         {
             RCLCPP_INFO(this->get_logger(), "| lidar_callback: Final range_data & Angle(deg)                = '%f'm at '%f' degrees |", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i));
+
+            // Publish marker for the current angle
+            publish_marker(scan_min_angle_ + angle_increment_ * i);
         }
         
-
-    void publish_marker(double angle) 
-    {
-        visualization_msgs::msg::Marker marker;
-        marker.header.frame_id = "/map";
-        marker.header.stamp = this->now();
-        marker.ns = "lidar_scan";
-        marker.id = 0;
-        marker.type = visualization_msgs::msg::Marker::SPHERE;
-        marker.action = visualization_msgs::msg::Marker::ADD;
-
-        marker.pose.position.x = cos(angle);
-        marker.pose.position.y = sin(angle);
-        marker.pose.position.z = 0.0;
-        marker.pose.orientation.x = 0.0;
-        marker.pose.orientation.y = 0.0;
-        marker.pose.orientation.z = 0.0;
-        marker.pose.orientation.w = 1.0;
-
-        marker.scale.x = 0.1;
-        marker.scale.y = 0.1;
-        marker.scale.z = 0.1;
-
-        marker.color.a = 1.0;
-        marker.color.r = 1.0;
-        marker.color.g = 0.0;
-        marker.color.b = 0.0;
-
-        marker.lifetime = rclcpp::Duration(0.1);
-
-        marker_pub_->publish(marker);
     }
-};
+
+}; // End of class ReactiveFollowGap
 
 int main(int argc, char ** argv) {
     rclcpp::init(argc, argv);
