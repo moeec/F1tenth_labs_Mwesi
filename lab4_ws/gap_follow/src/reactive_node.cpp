@@ -142,9 +142,6 @@ private:
             scan_min_angle_ = scan_msg->angle_min;
             scan_max_angle_ = scan_msg->angle_max;
             current_angle_ = scan_min_angle_ + angle_increment_ * i;
-            
-            // Keeping track of for loop 
-            RCLCPP_INFO(this->get_logger(), "lidar_callback: i value is now             = '%d'", i);
 
             // Visual used for debug (Publish marker for the current angle)
             publish_marker(largest_range_indx);                              
