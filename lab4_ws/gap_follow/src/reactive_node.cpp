@@ -7,10 +7,6 @@
 #include "visualization_msgs/msg/marker.hpp"
 #include <limits>  // For std::numeric_limits
 
-// Initialize the smallest and largest values
-float smallest_range = std::numeric_limits<float>::max();
-float largest_range = std::numeric_limits<float>::lowest();
-
 #define PI 3.1415927
 #define RAD2DEG(x) ((x)*180./PI)
 #define DEG2RAD(x) ((x)/180.0*PI)
@@ -124,6 +120,10 @@ private:
         auto range_data_ = scan_msg->ranges;
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
 	    double rbs = 150;
+
+        // Initialize the smallest and largest values
+        float smallest_range = std::numeric_limits<float>::max();
+        float largest_range = std::numeric_limits<float>::lowest();
 	    //ranges = std::vector<double>(std::begin(scan_msg.ranges), std::end(scan_msg.ranges));
 
         // Simplify lidar FOV
