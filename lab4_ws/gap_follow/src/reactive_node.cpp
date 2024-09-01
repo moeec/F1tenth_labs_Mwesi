@@ -173,10 +173,10 @@ private:
                   {
                     if(range_data_[i]> 2.5)
                     {
-                        range_data_tracker_[i] = 1000;
+                        range_data_tracker_[i] = 1000000;
                     }
-
-                  }  
+                  }
+                  range_data_tracker_[largest_range_indx] = largest_range;  
                 }
 
             }
@@ -186,8 +186,9 @@ private:
         // After the loop, you can use smallest_range and largest_range as needed
         RCLCPP_INFO(this->get_logger(), "Smallest range value: '%f' meters at '%f degrees", smallest_range, scan_min_angle_ + angle_increment_ * smallest_range_indx);
         RCLCPP_INFO(this->get_logger(), "Largest range value: '%f' meters at '%f degrees", largest_range, scan_min_angle_ + angle_increment_ * largest_range_indx);
-        //drive_msg.drive.speed = 2.0;
-        //ackermann_publisher_->publish(drive_msg);
+        drive_msg.drive.steering_angle = angle_increment_ * largest_range_indx;
+        drive_msg.drive.speed = 2.0;
+        ackermann_publisher_->publish(drive_msg);
 
 
         RCLCPP_INFO(this->get_logger(), "***********************************DISPLAYING FULL FINAL RANGE MEASUREMENTS BELOW********************************************");
