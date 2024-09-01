@@ -56,15 +56,21 @@ private:
         return;
     }
 
-    void find_max_gap(float* ranges, int* indice)
+    void find_max_gap(std::vector<float> ranges, double indice)
     {   
         // Return the start index & end index of the max gap in free_space_ranges
+
+        RCLCPP_INFO(this->get_logger(), "find_max_gap:**");
         return;
     }
 
-    void find_best_point(float* ranges, int* indice)
+    void find_best_point(double ranges, double indice)
     {   
         // Start_i & end_i are start and end indicies of max-gap range, respectively
+
+
+
+
         // Return index of best point in ranges
 	    // Naive: Choose the furthest point within ranges and go there
         return;
@@ -129,9 +135,6 @@ private:
         float smallest_range = std::numeric_limits<float>::max();
         float largest_range = std::numeric_limits<float>::lowest();
 
-
-	    //ranges = std::vector<double>(std::begin(scan_msg.ranges), std::end(scan_msg.ranges));
-
         // Simplify lidar FOV
 
         min_angle_ = DEG2RAD(-70);
@@ -145,7 +148,6 @@ private:
             scan_max_angle_ = scan_msg->angle_max;
             current_angle_ = scan_min_angle_ + angle_increment_ * i;
             
-
             // Visual used for debug (Publish marker for the current angle)
             publish_marker(current_angle_);                              
 
@@ -171,23 +173,22 @@ private:
                 {
                   for (unsigned int i = 0; i < range_data_.size(); i++)
                   {
-                    if(range_data_[i]> 2.5)
+                    if(range_data_[i]> 2.0)
                     {
                         range_data_tracker_[i] = 1000000;
                     }
                   }
-                  range_data_tracker_[largest_range_indx] = largest_range;  
                 }
-
             }
-
+            range_data_tracker_[largest_range_indx] = largest_range;
+            find_max_gap(range_data_tracker_,largest_range_indx);
         }
 
         // After the loop, you can use smallest_range and largest_range as needed
         RCLCPP_INFO(this->get_logger(), "Smallest range value: '%f' meters at '%f degrees", smallest_range, scan_min_angle_ + angle_increment_ * smallest_range_indx);
         RCLCPP_INFO(this->get_logger(), "Largest range value: '%f' meters at '%f degrees", largest_range, scan_min_angle_ + angle_increment_ * largest_range_indx);
         drive_msg.drive.steering_angle = angle_increment_ * largest_range_indx;
-        drive_msg.drive.speed = 2.0;
+        drive_msg.drive.speed = 1.0;
         ackermann_publisher_->publish(drive_msg);
 
 
