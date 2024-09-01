@@ -82,7 +82,7 @@ private:
 
         marker.pose.position.x = cos(angle);
         marker.pose.position.y = sin(angle);
-        marker.pose.position.z = 0.0;
+        marker.pose.position.z = 1.0;
         marker.pose.orientation.x = 0.0;
         marker.pose.orientation.y = 0.0;
         marker.pose.orientation.z = 0.0;
@@ -118,10 +118,12 @@ private:
         // Publish Drive message
 
         auto range_data_ = scan_msg->ranges;
+        auto range_data_tracker_ = scan_msg->ranges;
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
 	    double rbs = 150;
         double smallest_range_indx;
         double largest_range_indx;
+        double largest_gap_;
 
         // Initialize the smallest and largest values
         float smallest_range = std::numeric_limits<float>::max();
@@ -142,9 +144,10 @@ private:
             scan_min_angle_ = scan_msg->angle_min;
             scan_max_angle_ = scan_msg->angle_max;
             current_angle_ = scan_min_angle_ + angle_increment_ * i;
+            
 
             // Visual used for debug (Publish marker for the current angle)
-            publish_marker(largest_range_indx);                              
+            publish_marker(current_angle_);                              
 
             if (!std::isinf(distance_) && !std::isnan(distance_) && current_angle_ > min_angle_ && current_angle_ < max_angle_)
             {
@@ -164,6 +167,18 @@ private:
                     largest_range = range_data_[i];
                     largest_range_indx = i;
                 }
+                if (i > 2)
+                {
+                  for (unsigned int i = 0; i < range_data_.size(); i++)
+                  {
+                    if(range_data_[i]> 2.5)
+                    {
+                        range_data_tracker_[i] = 1000;
+                    }
+
+                  }  
+                }
+
             }
 
         }
@@ -182,7 +197,7 @@ private:
             current_angle_ = scan_min_angle_ + angle_increment_ * i;
             if (current_angle_ > min_angle_ && current_angle_ < max_angle_)
             {
-                RCLCPP_INFO(this->get_logger(), "* lidar_callback: Final range_data & Angle(deg; negative is to the right of front) = '%f'm at '%f' degrees *", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i));
+                RCLCPP_INFO(this->get_logger(), "* lidar_callback: Final range_data & Angle(deg; negative is to the right of front) = '%f'm at '%f' degrees: Gaps Tracker '%f'(GAPS at 1000) *", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i), range_data_tracker_[i]);
             }
             
         }
