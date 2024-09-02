@@ -60,16 +60,43 @@ private:
     {   
         // Return the start index & end index of the max gap in free_space_ranges
 
+        double gap_counter = 0;
+        double gap_open_counter = 0;
+        double gap_termination = 1234;
+        
+
         RCLCPP_INFO(this->get_logger(), "find_max_gap:**");
+
+        for (unsigned int i = 0; i < ranges.size(); i++)
+        {
+            if(ranges[i] = 1000000)
+            {
+                if(ranges[i+1] = 1000000)
+                {
+                    ranges[i] = gap_termination;
+                    RCLCPP_INFO(this->get_logger(), "find_max_gap: FrontGap Termination Found!!!");
+                }
+                RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap Found!!!");
+                if(ranges[i+1] = 1000000)
+                {
+                    gap_open_counter++;
+                    RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap = '%f' Gaps", gap_open_counter);
+                }
+                else
+                {
+                    ranges[i] = gap_termination;
+                    RCLCPP_INFO(this->get_logger(), "find_max_gap: BackGap Termination Found!!!");
+                }
+
+            }
+            
+        }
         return;
     }
 
     void find_best_point(double ranges, double indice)
     {   
         // Start_i & end_i are start and end indicies of max-gap range, respectively
-
-
-
 
         // Return index of best point in ranges
 	    // Naive: Choose the furthest point within ranges and go there
@@ -185,13 +212,11 @@ private:
         }
 
         // After the loop, you can use smallest_range and largest_range as needed
-        RCLCPP_INFO(this->get_logger(), "Smallest range value: '%f' meters at '%f degrees", smallest_range, scan_min_angle_ + angle_increment_ * smallest_range_indx);
-        RCLCPP_INFO(this->get_logger(), "Largest range value: '%f' meters at '%f degrees", largest_range, scan_min_angle_ + angle_increment_ * largest_range_indx);
-        drive_msg.drive.steering_angle = angle_increment_ * largest_range_indx;
-        drive_msg.drive.speed = 1.0;
-        ackermann_publisher_->publish(drive_msg);
+        RCLCPP_INFO(this->get_logger(), "lidar_callback: Smallest range value: '%f' meters at '%f degrees", smallest_range, scan_min_angle_ + angle_increment_ * smallest_range_indx);
+        RCLCPP_INFO(this->get_logger(), "lidar_callback: Largest range value: '%f' meters at '%f degrees", largest_range, scan_min_angle_ + angle_increment_ * largest_range_indx);
+        
 
-
+        
         RCLCPP_INFO(this->get_logger(), "***********************************DISPLAYING FULL FINAL RANGE MEASUREMENTS BELOW********************************************");
 
         for (unsigned int i = 0; i < range_data_.size(); i++)
@@ -201,9 +226,11 @@ private:
             {
                 RCLCPP_INFO(this->get_logger(), "* lidar_callback: Final range_data & Angle(deg; negative is to the right of front) = '%f'm at '%f' degrees: Gaps Tracker '%f'(GAPS at 1000) *", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i), range_data_tracker_[i]);
             }
-            
         }
-           
+    
+        drive_msg.drive.steering_angle = angle_increment_ * largest_range_indx;
+        drive_msg.drive.speed = 1.0;
+        ackermann_publisher_->publish(drive_msg);
     }
 
 }; // End of class ReactiveFollowGap
