@@ -56,7 +56,7 @@ private:
         return;
     }
 
-    void find_max_gap(std::vector<float> ranges, double indice)
+    void find_max_gap(std::vector<float> gap_tracker, double indice)
     {   
         // Return the start index & end index of the max gap in free_space_ranges
 
@@ -65,45 +65,52 @@ private:
         double gap_front_end = 1234;
         double gap_back_end = 4321;
 
-        for (unsigned int i = 0; i < ranges.size(); i++)
+        for (unsigned int i = 0; i < gap_tracker.size(); i++)
         {
-            if(ranges[i] = 1000000)
+            if(gap_tracker[i] = 1000000)
             {
                 gap_width_counter++;
-                RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap = '%f' Gaps", gap_width_counter);
+                RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap = '%f' angle Increments found in current Gap", gap_width_counter);
                 
-                if(ranges[i+1] = 1000000)
+                if(gap_width_counter = 1)
                 {
-                    ranges[i] = gap_front_end;
-                    RCLCPP_INFO(this->get_logger(), "find_max_gap: Frontend");
+                    gap_tracker[i] = gap_front_end;
+                    RCLCPP_INFO(this->get_logger(), "find_max_gap: Frontend found");
+                }
+                else
+                {
+                    RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap found");
                 }
 
-                RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap Found!!!");
             }
             else
             {
-                ranges[i] = gap_back_end;
-                RCLCPP_INFO(this->get_logger(), "find_max_gap: Backend");
-            }
-
-            RCLCPP_INFO(this->get_logger(), "find_max_gap: '%f' Gaps Found.", gap_width_counter++);
-            for (unsigned int i = 0; i < ranges.size(); i++)
-            {
-            
-
+                gap_tracker[i] = gap_back_end;
+                RCLCPP_INFO(this->get_logger(), "find_max_gap: Backend found");
             }
         }
 
+        for (unsigned int i = 0; i < gap_tracker.size(); i++)
+        {
+            if(gap_tracker[i] = 1234) {gap_counter++;}
+
+            RCLCPP_INFO(this->get_logger(), "find_max_gap: '%f' Gaps found", gap_counter);
+        }
 
         return;
     }
 
-    void find_best_point(double ranges, double indice)
+    void find_best_point(std::vector<float> gap_tracker, double indice)
     {   
         // Start_i & end_i are start and end indicies of max-gap range, respectively
 
         // Return index of best point in ranges
 	    // Naive: Choose the furthest point within ranges and go there
+
+         for (unsigned int i = 0; i < gap_tracker.size(); i++)
+            {
+                RCLCPP_INFO(this->get_logger(), "find_best_point: ");
+            }
         return;
     }
 
