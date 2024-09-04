@@ -106,7 +106,6 @@ private:
     void find_best_point(std::vector<float> gap_tracker, double indice)
     {   
         // Start_i & end_i are start and end indicies of max-gap range, respectively
-ranges
         // Return index of best point in ranges
 	    // Naive: Choose the furthest point within ranges and go there
 
@@ -165,7 +164,6 @@ ranges
         // Publish Drive message
 
         auto range_data_ = scan_msg->ranges;
-        ranges = scan_msg->ranges;
         auto range_data_tracker_ = scan_msg->ranges;
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
 	    double rbs = 150;
