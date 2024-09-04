@@ -66,6 +66,12 @@ private:
 
         for (unsigned int i = 0; i < gap_tracker.size(); i++)
         {
+            RCLCPP_INFO(this->get_logger(), "find_max_gap: Incoming Gap tracker '%f'", gap_tracker);
+
+        }
+
+        for (unsigned int i = 0; i < gap_tracker.size(); i++)
+        {
             if(gap_tracker[i] = 1000000)
             {
                 gap_width_counter++;
@@ -100,7 +106,7 @@ private:
     void find_best_point(std::vector<float> gap_tracker, double indice)
     {   
         // Start_i & end_i are start and end indicies of max-gap range, respectively
-
+ranges
         // Return index of best point in ranges
 	    // Naive: Choose the furthest point within ranges and go there
 
@@ -119,7 +125,7 @@ private:
         marker.ns = "lidar_scan";
         marker.id = 0;
         marker.type = visualization_msgs::msg::Marker::SPHERE;
-        marker.action = visualization_msgs::msg::Marker::ADD;
+        marker.action = visualization_msgs::msg::Marker::ADD;987.000000
 
         marker.pose.position.x = cos(angle);
         marker.pose.position.y = sin(angle);
@@ -159,6 +165,7 @@ private:
         // Publish Drive message
 
         auto range_data_ = scan_msg->ranges;
+        ranges = scan_msg->ranges;
         auto range_data_tracker_ = scan_msg->ranges;
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
 	    double rbs = 150;
