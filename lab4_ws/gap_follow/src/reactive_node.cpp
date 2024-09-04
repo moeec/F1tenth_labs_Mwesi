@@ -59,7 +59,6 @@ private:
     void find_max_gap(std::vector<float> gap_tracker, double indice)
     {   
         // Return the start index & end index of the max gap in free_space_ranges
-
         double gap_counter = 0;
         double gap_width_counter = 0;
         double gap_front_end = 1234;
@@ -70,8 +69,6 @@ private:
             if(gap_tracker[i] = 1000000)
             {
                 gap_width_counter++;
-                RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap = '%f' angle Increments found in current Gap", gap_width_counter);
-                
                 if(gap_width_counter = 1)
                 {
                     gap_tracker[i] = gap_front_end;
@@ -81,12 +78,12 @@ private:
                 {
                     RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap found");
                 }
-
             }
             else
             {
                 gap_tracker[i] = gap_back_end;
                 RCLCPP_INFO(this->get_logger(), "find_max_gap: Backend found");
+                RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap = '%f' angle Increments found in current Gap", gap_width_counter);
             }
         }
 
