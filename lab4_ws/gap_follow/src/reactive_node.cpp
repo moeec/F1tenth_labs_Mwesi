@@ -75,22 +75,18 @@ private:
             if(gap_tracker[i] = 1000000)
             {
                 gap_width_counter++;
-
-                if(gap_width_counter < 2)
-                {
-                    gap_tracker[i] = gap_front_end;
-                    RCLCPP_INFO(this->get_logger(), "find_max_gap: Frontend found");
-                }
-                else
-                {
-                    RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap found '%f'", gap_width_counter);
-                }
+                gap_tracker[i] = 1;
             }
-            if (gap_tracker[i] < 1000000)
+            else
             {
-                gap_tracker[i] = gap_back_end;
-                RCLCPP_INFO(this->get_logger(), "find_max_gap: Backend found");
+                gap_tracker[i] = 0;
             }
+        }
+
+        for (unsigned int i = 0; i < gap_tracker.size(); i++)
+        {
+            RCLCPP_INFO(this->get_logger(), "find_max_gap: Outgoing Gap tracker '%f'", gap_tracker[i]);
+
         }
 
         /*
