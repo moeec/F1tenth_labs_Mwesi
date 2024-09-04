@@ -83,14 +83,13 @@ private:
                 }
                 else
                 {
-                    RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap found");
+                    RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap found '%f'", gap_width_counter);
                 }
             }
-            else if (gap_tracker[i] < 1000000)
+            if (gap_tracker[i] < 1000000)
             {
                 gap_tracker[i] = gap_back_end;
                 RCLCPP_INFO(this->get_logger(), "find_max_gap: Backend found");
-                RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap = '%f' angle Increments found in current Gap", gap_width_counter);
             }
         }
 
