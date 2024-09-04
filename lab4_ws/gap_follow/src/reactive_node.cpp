@@ -66,7 +66,7 @@ private:
 
         for (unsigned int i = 0; i < gap_tracker.size(); i++)
         {
-            RCLCPP_INFO(this->get_logger(), "find_max_gap: Incoming Gap tracker '%f'", gap_tracker);
+            RCLCPP_INFO(this->get_logger(), "find_max_gap: Incoming Gap tracker '%f'", gap_tracker[i]);
 
         }
 
@@ -75,7 +75,8 @@ private:
             if(gap_tracker[i] = 1000000)
             {
                 gap_width_counter++;
-                if(gap_width_counter = 1)
+
+                if(gap_width_counter < 2)
                 {
                     gap_tracker[i] = gap_front_end;
                     RCLCPP_INFO(this->get_logger(), "find_max_gap: Frontend found");
@@ -85,7 +86,7 @@ private:
                     RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap found");
                 }
             }
-            else
+            else if (gap_tracker[i] < 1000000)
             {
                 gap_tracker[i] = gap_back_end;
                 RCLCPP_INFO(this->get_logger(), "find_max_gap: Backend found");
@@ -93,12 +94,14 @@ private:
             }
         }
 
+        /*
         for (unsigned int i = 0; i < gap_tracker.size(); i++)
         {
             if(gap_tracker[i] = 1234) {gap_counter++;}
 
             RCLCPP_INFO(this->get_logger(), "find_max_gap: '%f' Gaps found", gap_counter);
         }
+        */
 
         return;
     }
@@ -124,8 +127,7 @@ private:
         marker.ns = "lidar_scan";
         marker.id = 0;
         marker.type = visualization_msgs::msg::Marker::SPHERE;
-        marker.action = visualization_msgs::msg::Marker::ADD;987.000000
-
+        marker.action = visualization_msgs::msg::Marker::ADD;987.000000;
         marker.pose.position.x = cos(angle);
         marker.pose.position.y = sin(angle);
         marker.pose.position.z = 1.0;
