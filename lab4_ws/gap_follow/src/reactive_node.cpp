@@ -61,14 +61,19 @@ private:
         // Return the start index & end index of the max gap in free_space_ranges
         double gap_counter = 0;
         double gap_width_counter = 0;
+        double previous_gap_width_counter= 0;
         double gap_front_end = 1234;
         double gap_back_end = 4321;
+        int largest_gap_indx;
 
+        
+        /* for debug
         for (unsigned int i = 0; i < gap_tracker.size(); i++)
         {
             RCLCPP_INFO(this->get_logger(), "find_max_gap: Incoming Gap tracker '%f'", gap_tracker[i]);
 
         }
+        */
 
         for (unsigned int i = 0; i < gap_tracker.size(); i++)
         {
@@ -76,26 +81,36 @@ private:
             {
                 gap_width_counter++;
 
-                if(gap_width_counter < 2)
+                if(gap_width_counter == 1)
                 {
                     gap_tracker[i] = gap_front_end;
                     RCLCPP_INFO(this->get_logger(), "find_max_gap: Frontend found");
                 }
-                else
-                {
-                    RCLCPP_INFO(this->get_logger(), "find_max_gap: Gap found '%f'", gap_width_counter);
-                }
             }
-            if (gap_tracker[i] < 1000000)
+
+            if (gap_tracker[i] != 1000000)
             {
                 gap_tracker[i] = gap_back_end;
                 RCLCPP_INFO(this->get_logger(), "find_max_gap: Backend found");
+                RCLCPP_INFO(this->get_logger(), "find_max_gap: '%f' Gaps found ", gap_width_counter);
+                
+                if (gap_width_counter > previous_gap_width_counter)
+                {
+                   previous_gap_width_counter = gap_width_counter;
+                   largest_gap_indx = i;
+                }   
             }
         }
+
+        RCLCPP_INFO(this->get_logger(), "find_max_gap: Largest Gap with found '%f' spaces", gap_width_counter);
+        RCLCPP_INFO(this->get_logger(), "find_max_gap: at '%f' spaces", gap_width_counter);
+
+
 
         for (unsigned int i = 0; i < gap_tracker.size(); i++)
         {
             RCLCPP_INFO(this->get_logger(), "find_max_gap: Outgoing Gap tracker '%f'", gap_tracker[i]);
+            RCLCPP_INFO(this->get_logger(), "find_max_gap: largest_gap_indx  '%d'", largest_gap_indx);
 
         }
 
@@ -229,11 +244,14 @@ private:
             }
             range_data_tracker_[largest_range_indx] = largest_range;
             find_max_gap(range_data_tracker_,largest_range_indx);
+            drive_msg.drive.steering_angle = angle_increment_ * largest_range_indx;
+            drive_msg.drive.speed = 1.0;
+            ackermann_publisher_->publish(drive_msg);
         }
 
         // After the loop, you can use smallest_range and largest_range as needed
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: Smallest range value: '%f' meters at '%f degrees", smallest_range, scan_min_angle_ + angle_increment_ * smallest_range_indx);
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: Largest range value: '%f' meters at '%f degrees", largest_range, scan_min_angle_ + angle_increment_ * largest_range_indx);
+        RCLCPP_INFO(this->get_logger(), "lidar_callback: Smallest range value: '%f' meters at '%f degrees", smallest_range, scan_min_angle_ + RAD2DEG(angle_increment_ * smallest_range_indx));
+        RCLCPP_INFO(this->get_logger(), "lidar_callback: Largest range value: '%f' meters at '%f degrees", largest_range, scan_min_angle_ + RAD2DEG(angle_increment_ * largest_range_indx));
         
 
         /*
@@ -250,9 +268,7 @@ private:
         }
         */
     
-        drive_msg.drive.steering_angle = angle_increment_ * largest_range_indx;
-        drive_msg.drive.speed = 1.0;
-        ackermann_publisher_->publish(drive_msg);
+        
     }
 
 }; // End of class ReactiveFollowGap
