@@ -42,6 +42,8 @@ private:
     double max_angle_;
     double current_angle_;
     std::vector<double> ranges;
+    int largest_gap_drive_;
+    
 
     /// ROS subscribers and publishers
     rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
@@ -64,8 +66,7 @@ private:
         double previous_gap_width_counter= 0;
         double gap_front_end = 1234;
         double gap_back_end = 4321;
-        int largest_gap_indx;
-
+        int largest_gap_indx = 0;
         
         /* for debug
         for (unsigned int i = 0; i < gap_tracker.size(); i++)
@@ -98,6 +99,7 @@ private:
                 {
                    previous_gap_width_counter = gap_width_counter;
                    largest_gap_indx = i;
+                   largest_gap_drive_ = largest_gap_indx - gap_width_counter/2;
                 }   
             }
         }
@@ -106,13 +108,14 @@ private:
         RCLCPP_INFO(this->get_logger(), "find_max_gap: at '%f' spaces", gap_width_counter);
 
 
-
+       /*
         for (unsigned int i = 0; i < gap_tracker.size(); i++)
         {
             RCLCPP_INFO(this->get_logger(), "find_max_gap: Outgoing Gap tracker '%f'", gap_tracker[i]);
             RCLCPP_INFO(this->get_logger(), "find_max_gap: largest_gap_indx  '%d'", largest_gap_indx);
 
         }
+        */
 
         /*
         for (unsigned int i = 0; i < gap_tracker.size(); i++)
@@ -244,8 +247,8 @@ private:
             }
             range_data_tracker_[largest_range_indx] = largest_range;
             find_max_gap(range_data_tracker_,largest_range_indx);
-            drive_msg.drive.steering_angle = angle_increment_ * largest_range_indx;
-            drive_msg.drive.speed = 1.0;
+            drive_msg.drive.steering_angle = angle_increment_ * largest_gap_drive_;
+            drive_msg.drive.speed = 1.5;
             ackermann_publisher_->publish(drive_msg);
         }
 
