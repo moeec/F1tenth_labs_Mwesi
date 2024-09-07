@@ -42,7 +42,7 @@ private:
     double max_angle_;
     double current_angle_;
     std::vector<double> ranges;
-    int largest_gap_drive_;
+    double largest_gap_drive_;
     
 
     /// ROS subscribers and publishers
@@ -99,7 +99,7 @@ private:
                 {
                    previous_gap_width_counter = gap_width_counter;
                    largest_gap_indx = i;
-                   largest_gap_drive_ = largest_gap_indx - gap_width_counter/2;
+                   largest_gap_drive_ = largest_gap_indx - (gap_width_counter/2);
                 }   
             }
         }
@@ -176,22 +176,11 @@ private:
     void lidar_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
     {   
         // Process each LiDAR scan as per the Follow Gap algorithm & publish an AckermannDriveStamped Message
-
-        /// TODO:
-        // Find closest point to LiDAR
-
-        // Eliminate all points inside 'bubble' (set them to zero) 
-
-        // Find max length gap 
-
-        // Find the best point in the gap 
-
-        // Publish Drive message
-
+	    
         auto range_data_ = scan_msg->ranges;
         auto range_data_tracker_ = scan_msg->ranges;
         auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
-	    double rbs = 150;
+	double rbs = 150;
         double smallest_range_indx;
         double largest_range_indx;
         double largest_gap_;
@@ -205,7 +194,10 @@ private:
         min_angle_ = DEG2RAD(-70);
         max_angle_ = DEG2RAD(70);
 
-        for (unsigned int i = 0; i < range_data_.size(); i++)
+        // Find closest point to LiDAR
+	// Find max length gap 
+	    
+	for (unsigned int i = 0; i < range_data_.size(); i++)
         {
             distance_ = scan_msg->ranges[i];
             angle_increment_ = scan_msg->angle_increment;
@@ -246,11 +238,39 @@ private:
                 }
             }
             range_data_tracker_[largest_range_indx] = largest_range;
-            find_max_gap(range_data_tracker_,largest_range_indx);
-            drive_msg.drive.steering_angle = angle_increment_ * largest_gap_drive_;
-            drive_msg.drive.speed = 1.5;
-            ackermann_publisher_->publish(drive_msg);
         }
+
+	// Eliminate all points inside 'bubble' (set them to zero) 
+	    
+	for (unsigned int i = 0; i < 75; i++)
+	{
+		range_data_[smallest_range_indx - i] = 0;	
+	}
+
+	for (unsigned int i = 0; i < 75; i++)
+	{
+		range_data_[smallest_range_indx + i] = 0;	
+	}
+
+	// Find the best point in the gap 
+        find_max_gap(range_data_tracker_,largest_range_indx);
+	    
+        // Publish Drive message dependent on drive angle
+
+        if (abs(drive_msg.drive.steering_angle) > DEG2RAD(20.0)) 
+        {
+            drive_msg.drive.speed = 0.5;
+        } 
+        else if (abs(drive_msg.drive.steering_angle) > DEG2RAD(10.0)) 
+        {
+            drive_msg.drive.speed = 1.0;
+        } 
+        else 
+        {
+            drive_msg.drive.speed = 1.5;
+        }
+
+        ackermann_publisher_->publish(drive_msg);
 
         // After the loop, you can use smallest_range and largest_range as needed
         RCLCPP_INFO(this->get_logger(), "lidar_callback: Smallest range value: '%f' meters at '%f degrees", smallest_range, scan_min_angle_ + RAD2DEG(angle_increment_ * smallest_range_indx));
