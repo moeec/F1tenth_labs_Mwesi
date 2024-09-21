@@ -1,6 +1,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <cmath>
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
@@ -50,96 +52,97 @@ private:
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
 
-    void preprocess_lidar(float* ranges)
+    std::vector<float> preprocess_lidar(const std::vector<float> &ranges, float range_min, float range_max)
     {   
         // Preprocess the LiDAR scan array. Expert implementation includes:
         // 1.Setting each value to the mean over some window
         // 2.Rejecting high values (eg. > 3m)
-        return;
+
+        std::vector<float> proc_ranges = ranges;
+
+        // Apply smoothing filter (moving average with a window size of 3)
+        for (size_t i = 1; i < ranges.size() - 1; ++i)
+        {
+            proc_ranges[i] = (ranges[i - 1] + ranges[i] + ranges[i + 1]) / 3.0;
+        }
+
+        // Reject high values
+        for (size_t i = 0; i < proc_ranges.size(); ++i)
+        {
+            if (std::isnan(proc_ranges[i]) || proc_ranges[i] > range_max || proc_ranges[i] < range_min)
+            {
+                proc_ranges[i] = range_max;
+            }
+        }
+
+        return proc_ranges;
     }
 
-    void find_max_gap(std::vector<float> gap_tracker, double indice)
+    void set_safety_bubble(std::vector<float> &ranges, int closest_point_idx, int bubble_size)
+    {
+        int start_idx = std::max(0, closest_point_idx - bubble_size);
+        int end_idx = std::min(static_cast<int>(ranges.size()) - 1, closest_point_idx + bubble_size);
+
+        for (int i = start_idx; i <= end_idx; ++i)
+        {
+            ranges[i] = 0.0;
+        }
+    }
+
+    std::pair<int, int> find_max_gap(const std::vector<float> &ranges)
     {   
-        // Return the start index & end index of the max gap in free_space_ranges
-        double gap_counter = 0;
-        double gap_width_counter = 0;
-        double previous_gap_width_counter= 0;
-        double gap_front_end = 1234;
-        double gap_back_end = 4321;
-        int largest_gap_indx = 0;
-        
-        /* for debug
-        for (unsigned int i = 0; i < gap_tracker.size(); i++)
-        {
-            RCLCPP_INFO(this->get_logger(), "find_max_gap: Incoming Gap tracker '%f'", gap_tracker[i]);
+        int max_start = 0;
+        int max_end = 0;
+        int max_length = 0;
 
-        }
-        */
+        int current_start = -1;
+        int current_length = 0;
 
-        for (unsigned int i = 0; i < gap_tracker.size(); i++)
+        for (size_t i = 0; i < ranges.size(); ++i)
         {
-            if(gap_tracker[i] == 1000000)
+            if (ranges[i] > 0.0)
             {
-                gap_width_counter++;
-
-                if(gap_width_counter == 1)
+                if (current_start == -1)
                 {
-                    gap_tracker[i] = gap_front_end;
-                    RCLCPP_INFO(this->get_logger(), "find_max_gap: Frontend found");
+                    current_start = i;
                 }
+                current_length++;
             }
-
-            if (gap_tracker[i] != 1000000)
+            else
             {
-                gap_tracker[i] = gap_back_end;
-                RCLCPP_INFO(this->get_logger(), "find_max_gap: Backend found");
-                RCLCPP_INFO(this->get_logger(), "find_max_gap: '%f' Gaps found ", gap_width_counter);
-                
-                if (gap_width_counter > previous_gap_width_counter)
+                if (current_length > max_length)
                 {
-                   previous_gap_width_counter = gap_width_counter;
-                   largest_gap_indx = i;
-                   largest_gap_drive_ = largest_gap_indx - (gap_width_counter/2);
-                }   
+                    max_length = current_length;
+                    max_start = current_start;
+                    max_end = i - 1;
+                }
+                current_start = -1;
+                current_length = 0;
             }
         }
 
-        RCLCPP_INFO(this->get_logger(), "find_max_gap: Largest Gap with found '%f' spaces", gap_width_counter);
-        RCLCPP_INFO(this->get_logger(), "find_max_gap: at '%f' spaces", gap_width_counter);
-
-
-       /*
-        for (unsigned int i = 0; i < gap_tracker.size(); i++)
+        // Check at the end of the array
+        if (current_length > max_length)
         {
-            RCLCPP_INFO(this->get_logger(), "find_max_gap: Outgoing Gap tracker '%f'", gap_tracker[i]);
-            RCLCPP_INFO(this->get_logger(), "find_max_gap: largest_gap_indx  '%d'", largest_gap_indx);
-
+            max_length = current_length;
+            max_start = current_start;
+            max_end = ranges.size() - 1;
         }
-        */
 
-        /*
-        for (unsigned int i = 0; i < gap_tracker.size(); i++)
-        {
-            if(gap_tracker[i] = 1234) {gap_counter++;}
-
-            RCLCPP_INFO(this->get_logger(), "find_max_gap: '%f' Gaps found", gap_counter);
-        }
-        */
-
-        return;
+        return std::make_pair(max_start, max_end);
+    
     }
 
-    void find_best_point(std::vector<float> gap_tracker, double indice)
+    int find_best_point(const std::vector<float> &ranges, int start_idx, int end_idx)
     {   
         // Start_i & end_i are start and end indicies of max-gap range, respectively
         // Return index of best point in ranges
 	    // Naive: Choose the furthest point within ranges and go there
 
-         for (unsigned int i = 0; i < gap_tracker.size(); i++)
-            {
-                RCLCPP_INFO(this->get_logger(), "find_best_point: ");
-            }
-        return;
+         // Choose the furthest point within the gap
+        auto max_elem_iter = std::max_element(ranges.begin() + start_idx, ranges.begin() + end_idx + 1);
+        
+        return std::distance(ranges.begin(), max_elem_iter);
     }
 
     void publish_marker(double angle) 
@@ -174,124 +177,53 @@ private:
     }
 
     void lidar_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
-    {   
-        // Process each LiDAR scan as per the Follow Gap algorithm & publish an AckermannDriveStamped Message
-	    
-        auto range_data_ = scan_msg->ranges;
-        auto range_data_tracker_ = scan_msg->ranges;
-        auto drive_msg = ackermann_msgs::msg::AckermannDriveStamped();
-	double rbs = 150;
-        double smallest_range_indx;
-        double largest_range_indx;
-        double largest_gap_;
+    {
+        // Preprocess the LiDAR scan
+        auto proc_ranges = preprocess_lidar(scan_msg->ranges, scan_msg->range_min, scan_msg->range_max);
 
-        // Initialize the smallest and largest values
-        float smallest_range = std::numeric_limits<float>::max();
-        float largest_range = std::numeric_limits<float>::lowest();
+        // Find the closest point
+        int closest_point_idx = std::distance(proc_ranges.begin(), std::min_element(proc_ranges.begin(), proc_ranges.end())); 
 
-        // Simplify lidar FOV
+        // Create a safety bubble around the closest point
+        int bubble_size = static_cast<int>(std::ceil(DEG2RAD(10.0) / scan_msg->angle_increment)); // Bubble of 10 degrees
+        set_safety_bubble(proc_ranges, closest_point_idx, bubble_size);
 
-        min_angle_ = DEG2RAD(-70);
-        max_angle_ = DEG2RAD(70);
+        // Find the largest gap
+        auto[max_start_idx, max_end_idx] = find_max_gap(proc_ranges);
 
-        // Find closest point to LiDAR
-	// Find max length gap 
-	    
-	for (unsigned int i = 0; i < range_data_.size(); i++)
-        {
-            distance_ = scan_msg->ranges[i];
-            angle_increment_ = scan_msg->angle_increment;
-            scan_min_angle_ = scan_msg->angle_min;
-            scan_max_angle_ = scan_msg->angle_max;
-            current_angle_ = scan_min_angle_ + angle_increment_ * i;
-            
-            // Visual used for debug (Publish marker for the current angle)
-            publish_marker(current_angle_);                              
+        // Find the best point in the largest gap
+        int best_point_idx = find_best_point(proc_ranges, max_start_idx, max_end_idx);
 
-            if (!std::isinf(distance_) && !std::isnan(distance_) && current_angle_ > min_angle_ && current_angle_ < max_angle_)
-            {
-                //RCLCPP_INFO(this->get_logger(), "lidar_callback: NO GAP! Range & Angle(deg)         = '%f' at '%f'", range_data_[i], RAD2DEG(current_angle_));
-                //RCLCPP_INFO(this->get_logger(), "---------------------------ELIMINATING NO GAPS AND SETTING TO ZERO--------------------------------------------------");
-    
-                // Update smallest_range if the current_range is smaller
-                if (range_data_[i] < smallest_range)
-                {
-                    smallest_range = range_data_[i];
-                    smallest_range_indx = i;
-                }
+        // Calculate the steering angle
+        float steering_angle = scan_msg->angle_min + best_point_idx * scan_msg->angle_increment;
 
-                // Update largest_range if the current_range is larger
-                if (range_data_[i] > largest_range)
-                {
-                    largest_range = range_data_[i];
-                    largest_range_indx = i;
-                }
-                if (i > 2)
-                {
-                  for (unsigned int i = 0; i < range_data_.size(); i++)
-                  {
-                    if(range_data_[i]> 1.0)
-                    {
-                        range_data_tracker_[i] = 1000000;
-                    }
-                  }
-                }
-            }
-            range_data_tracker_[largest_range_indx] = largest_range;
-        }
+        // Publish the marker for visualization
+        publish_marker(steering_angle);
 
-	// Eliminate all points inside 'bubble' (set them to zero) 
-	    
-	for (unsigned int i = 0; i < 75; i++)
-	{
-		range_data_[smallest_range_indx - i] = 0;	
-	}
+        // Create and publish the drive message
+        ackermann_msgs::msg::AckermannDriveStamped drive_msg;
+        drive_msg.header.stamp = this->now();
+        drive_msg.header.frame_id = "laser";
 
-	for (unsigned int i = 0; i < 75; i++)
-	{
-		range_data_[smallest_range_indx + i] = 0;	
-	}
+        // Set steering angle and speed
+        drive_msg.drive.steering_angle = steering_angle;
 
-	// Find the best point in the gap 
-        find_max_gap(range_data_tracker_,largest_range_indx);
-	    
-        // Publish Drive message dependent on drive angle
-
-        if (abs(drive_msg.drive.steering_angle) > DEG2RAD(20.0)) 
+        // Speed control based on steering angle
+        float abs_steering_angle = std::abs(steering_angle);
+        if (abs_steering_angle > DEG2RAD(20.0))
         {
             drive_msg.drive.speed = 0.5;
-        } 
-        else if (abs(drive_msg.drive.steering_angle) > DEG2RAD(10.0)) 
+        }
+        else if (abs_steering_angle > DEG2RAD(10.0))
         {
             drive_msg.drive.speed = 1.0;
-        } 
-        else 
+        }
+        else
         {
             drive_msg.drive.speed = 1.5;
         }
 
         ackermann_publisher_->publish(drive_msg);
-
-        // After the loop, you can use smallest_range and largest_range as needed
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: Smallest range value: '%f' meters at '%f degrees", smallest_range, scan_min_angle_ + RAD2DEG(angle_increment_ * smallest_range_indx));
-        RCLCPP_INFO(this->get_logger(), "lidar_callback: Largest range value: '%f' meters at '%f degrees", largest_range, scan_min_angle_ + RAD2DEG(angle_increment_ * largest_range_indx));
-        
-
-        /*
-        RCLCPP_INFO(this->get_logger(), "***********************************DISPLAYING FULL FINAL RANGE MEASUREMENTS BELOW********************************************");
-
-        
-        for (unsigned int i = 0; i < range_data_.size(); i++)
-        {
-            current_angle_ = scan_min_angle_ + angle_increment_ * i;
-            if (current_angle_ > min_angle_ && current_angle_ < max_angle_)
-            {
-                RCLCPP_INFO(this->get_logger(), "* lidar_callback: Final range_data & Angle(deg; negative is to the right of front) = '%f'm at '%f' degrees: Gaps Tracker '%f'(GAPS at 1000) *", range_data_[i], RAD2DEG(scan_min_angle_ + angle_increment_ * i), range_data_tracker_[i]);
-            }
-        }
-        */
-    
-        
     }
 
 }; // End of class ReactiveFollowGap
