@@ -212,7 +212,7 @@ private:
         float abs_steering_angle = std::abs(steering_angle);
         if (abs_steering_angle > DEG2RAD(20.0))
         {
-            drive_msg.drive.speed = 0.5;
+            drive_msg.drive.speed = 0.2;
         }
         else if (abs_steering_angle > DEG2RAD(10.0))
         {
