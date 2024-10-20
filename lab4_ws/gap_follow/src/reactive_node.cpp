@@ -216,11 +216,11 @@ private:
         }
         else if (abs_steering_angle > DEG2RAD(10.0))
         {
-            drive_msg.drive.speed = 1.0;
+            drive_msg.drive.speed = 0.5;
         }
         else
         {
-            drive_msg.drive.speed = 1.5;
+            drive_msg.drive.speed = 0.7;
         }
 
         ackermann_publisher_->publish(drive_msg);
