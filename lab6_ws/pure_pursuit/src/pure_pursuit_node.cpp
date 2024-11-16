@@ -27,6 +27,11 @@ public:
     PurePursuit() : Node("pure_pursuit_node")
     {
         // TODO: create ROS subscribers and publishers
+
+        rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
+        
+        rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
+
     }
 
     void pose_callback(const geometry_msgs::msg::PoseStamped::ConstPtr &pose_msg)
