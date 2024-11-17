@@ -29,10 +29,17 @@ public:
         // TODO: create ROS subscribers and publishers
 
         rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
-        
         rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
 
+         sub_ = this->create_subscription<nav_msgs::msg::odometry>
+            ("/odom", 1000, std::bind(&SubscribeAndPublish::callback, this, std::placeholders::_1));
+
     }
+
+/// ROS subscribers and publishers
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
+    rclcpp::Subscription<nav_msgs::msg::odometry>::SharedPtr sub_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
 
     void pose_callback(const geometry_msgs::msg::PoseStamped::ConstPtr &pose_msg)
     {
