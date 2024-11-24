@@ -13,4 +13,4 @@ gnome-terminal -- bash -c "rviz2; exec bash"
 sleep 1
 
 # Launch third terminal
-gnome-terminal -- bash -c "ls; exec bash"
+gnome-terminal -- bash -c "ls; cd ~/f1tenth_ws && ./start_car.sh; exec bash"
