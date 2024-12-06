@@ -12,8 +12,8 @@ slam_toolbox:
     # ROS Parameters
     odom_frame: odom
     map_frame: map
-    base_frame: laser
-    scan_topic: /scan
+    base_frame: ego_racecar/base_link 
+    scan_topic: ego_racecar/laser
     mode: mapping #localization
 
     # if you'd like to immediately start continuing a map at a given pose
