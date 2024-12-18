@@ -185,7 +185,7 @@ private:
         int closest_point_idx = std::distance(proc_ranges.begin(), std::min_element(proc_ranges.begin(), proc_ranges.end())); 
 
         // Create a safety bubble around the closest point
-        int bubble_size = static_cast<int>(std::ceil(DEG2RAD(10.0) / scan_msg->angle_increment)); // Bubble of 10 degrees
+        int bubble_size = static_cast<int>(std::ceil(DEG2RAD(23.0) / scan_msg->angle_increment)); // Bubble of 10 degrees
         set_safety_bubble(proc_ranges, closest_point_idx, bubble_size);
 
         // Find the largest gap
@@ -216,11 +216,11 @@ private:
         }
         else if (abs_steering_angle > DEG2RAD(10.0))
         {
-            drive_msg.drive.speed = 0.5;
+            drive_msg.drive.speed = 0.35;
         }
         else
         {
-            drive_msg.drive.speed = 0.7;
+            drive_msg.drive.speed = 0.52;
         }
 
         ackermann_publisher_->publish(drive_msg);
