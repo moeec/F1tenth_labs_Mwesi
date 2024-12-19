@@ -25,12 +25,12 @@ public:
     {
         /// TODO: create ROS subscribers and publishers
 
-        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
-        marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("lidar_marker", 10);
+        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1000);
+        marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("lidar_marker", 2);
         
 
         scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
-            "/scan", 10, std::bind(&ReactiveFollowGap::lidar_callback, this, std::placeholders::_1));
+            "/scan", 3, std::bind(&ReactiveFollowGap::lidar_callback, this, std::placeholders::_1));
     }
 
 private:
@@ -185,7 +185,7 @@ private:
         int closest_point_idx = std::distance(proc_ranges.begin(), std::min_element(proc_ranges.begin(), proc_ranges.end())); 
 
         // Create a safety bubble around the closest point
-        int bubble_size = static_cast<int>(std::ceil(DEG2RAD(23.0) / scan_msg->angle_increment)); // Bubble of 10 degrees
+        int bubble_size = static_cast<int>(std::ceil(DEG2RAD(23.7) / scan_msg->angle_increment)); // Bubble of 10 degrees
         set_safety_bubble(proc_ranges, closest_point_idx, bubble_size);
 
         // Find the largest gap
