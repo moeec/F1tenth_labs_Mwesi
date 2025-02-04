@@ -80,8 +80,6 @@ private:
     std::vector<double> yes;
     std::vector<double> headings;
     double angle;
-    double x_current;
-    double y_current;
     double heading_current;
 
     // Callback function for handling Odometry messages
@@ -90,9 +88,10 @@ private:
         RCLCPP_INFO(this->get_logger(), "Received odometry data");
         // Process the Odometry message
 
-        x_current = msg.pose.pose.position.x;
-        y_current = msg.pose.pose.position.y;
-        msg.pose.pose.po
+        auto current_position = msg->pose;
+
+        RCLCPP_INFO(this->get_logger(), "Current Position is:'%2f'", current_position);
+    
     }
 
     // Callback for PoseStamped messages
