@@ -89,9 +89,11 @@ private:
         // Process the Odometry message
 
         auto position = msg->pose.pose.position;
+        auto orientation = msg->pose.pose.orientation;
+        
+        RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position.x, position.y, position.z);
+        RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation.x, orientation.y, orientation.z, orientation.w);
 
-    RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position.x, position.y, position.z);
-    
     }
 
     // Callback for PoseStamped messages
