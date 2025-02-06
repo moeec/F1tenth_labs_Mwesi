@@ -88,9 +88,9 @@ private:
         RCLCPP_INFO(this->get_logger(), "Received odometry data");
         // Process the Odometry message
 
-        auto current_position = msg->pose;
+        auto position = msg->pose.pose.position;
 
-        RCLCPP_INFO(this->get_logger(), "Current Position is:'%2f'", current_position);
+    RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position.x, position.y, position.z);
     
     }
 
