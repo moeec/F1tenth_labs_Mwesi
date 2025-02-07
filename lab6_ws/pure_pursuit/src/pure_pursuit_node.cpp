@@ -88,11 +88,11 @@ private:
         RCLCPP_INFO(this->get_logger(), "Received odometry data");
         // Process the Odometry message
 
-        auto position = msg->pose.pose.position;
-        auto orientation = msg->pose.pose.orientation;
+        auto position_odom = msg->pose.pose.position;
+        auto orientation_odom = msg->pose.pose.orientation;
         
-        RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position.x, position.y, position.z);
-        RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation.x, orientation.y, orientation.z, orientation.w);
+        RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position_odom.x, position_odom.y, position_odom.z);
+        RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_odom.x, orientation_odom.y, orientation_odom.z, orientation_odom.w);
 
     }
 
@@ -100,6 +100,13 @@ private:
     void pose_callback(const geometry_msgs::msg::PoseStamped::SharedPtr pose_msg)
     {
         RCLCPP_INFO(this->get_logger(), "Received pose data");
+
+        auto position_ps = msg->pose.pose.position;
+        auto orientation_ps = msg->pose.pose.orientation;
+
+        RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position_ps.x, position_ps.y, position_ps.z);
+        RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_ps.x, orientation_ps.y, orientation_ps.z, orientation_ps.w);
+        
         // Process the PoseStamped message
     }
 };
