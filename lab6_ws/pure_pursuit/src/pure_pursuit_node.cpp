@@ -101,8 +101,8 @@ private:
     {
         RCLCPP_INFO(this->get_logger(), "Received pose data");
 
-        auto position_ps = msg->pose.pose.position;
-        auto orientation_ps = msg->pose.pose.orientation;
+        auto position_ps = pose_msg->pose.pose.position;
+        auto orientation_ps = pose_msg->pose.pose.orientation;
 
         RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position_ps.x, position_ps.y, position_ps.z);
         RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_ps.x, orientation_ps.y, orientation_ps.z, orientation_ps.w);
