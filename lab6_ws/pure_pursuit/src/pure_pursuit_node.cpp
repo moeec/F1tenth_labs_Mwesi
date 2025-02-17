@@ -1,3 +1,6 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include "rclcpp/rclcpp.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -8,6 +11,18 @@
 #include "csv.h"
 #include "math.h"
 
+struct DataRow {
+    double column1;
+    double column2;
+    double column3;
+
+    // Constructor
+    DataRow(double x, double y, double z) : column1(x), column2(y), column3(z) {}
+};
+
+std::vector<DataRow> data;
+const std::string filename = "waypoints.csv";
+
 class PurePursuit : public rclcpp::Node
 {
 public:
@@ -16,18 +31,67 @@ public:
         // Create a subscription to the Odometry message
         sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/ego_racecar/odom", 1000, std::bind(&PurePursuit::callback, this, std::placeholders::_1));
-        
-        
-        marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);
 
-        // Other initialization code...
+        marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);
+       
+
+        
+   }
+
+private:
+    // Subscription to Odometry
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
+
+    std::vector<double> xes;
+    std::vector<double> yes;
+    std::vector<double> headings;
+    double angle;
+    double heading_current;
+    
+
+    // Callback function for handling Odometry messages
+    void callback(const nav_msgs::msg::Odometry::SharedPtr msg)
+    {
+        RCLCPP_INFO(this->get_logger(), "Received odometry data");
+        // Process the Odometry message
+
+        auto position_odom = msg->pose.pose.position;
+        auto orientation_odom = msg->pose.pose.orientation;
+        
+        RCLCPP_INFO(this->get_logger(),"nav_msgs:Current Position is: x=%.2f, y=%.2f, z=%.2f", position_odom.x, position_odom.y, position_odom.z);
+        RCLCPP_INFO(this->get_logger(),"nav_msgs:Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_odom.x, orientation_odom.y, orientation_odom.z, orientation_odom.w);
+
+        // Publish the marker for visualization
+        publish_marker(angle);
+
+    }
+
+    // Callback for PoseStamped messages
+    void pose_callback(const geometry_msgs::msg::PoseStamped::SharedPtr pose_msg)
+    {
+        RCLCPP_INFO(this->get_logger(), "Received pose data");
+
+        auto position_ps = pose_msg->pose.position;
+        auto orientation_ps = pose_msg->pose.orientation;
+
+        RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position_ps.x, position_ps.y, position_ps.z);
+        RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_ps.x, orientation_ps.y, orientation_ps.z, orientation_ps.w);
+        
+        // Process the PoseStamped message
+    }
+
+    void publish_marker(double angle) 
+    {
+
+        io::CSVReader<3> csv_input("waypoints.csv");
 
         double x;
         double y;
         double heading;
 
         // reading in waypints data from csv
-        io::CSVReader<3> csv_input("waypoints.csv");
+        // based off of https://wiki.ros.org/rviz/DisplayTypes/Marker
 
         visualization_msgs::msg::Marker marker;
         marker.header.frame_id = "/map";
@@ -64,51 +128,15 @@ public:
             points.y = y;
             points.z = 0.0;
             marker.points.push_back(points);
+            //debug below
         }
 
-        marker.lifetime = rclcpp::Duration(0.1);
+        marker.lifetime = rclcpp::Duration(0.8);
 
         marker_pub_->publish(marker);
-    }
+        RCLCPP_INFO(this->get_logger(),"publish_marker:");
 
-private:
-    // Subscription to Odometry
-    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_;
-    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
-
-    std::vector<double> xes;
-    std::vector<double> yes;
-    std::vector<double> headings;
-    double angle;
-    double heading_current;
-
-    // Callback function for handling Odometry messages
-    void callback(const nav_msgs::msg::Odometry::SharedPtr msg)
-    {
-        RCLCPP_INFO(this->get_logger(), "Received odometry data");
-        // Process the Odometry message
-
-        auto position_odom = msg->pose.pose.position;
-        auto orientation_odom = msg->pose.pose.orientation;
-        
-        RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position_odom.x, position_odom.y, position_odom.z);
-        RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_odom.x, orientation_odom.y, orientation_odom.z, orientation_odom.w);
-
-    }
-
-    // Callback for PoseStamped messages
-    void pose_callback(const geometry_msgs::msg::PoseStamped::SharedPtr pose_msg)
-    {
-        RCLCPP_INFO(this->get_logger(), "Received pose data");
-
-        auto position_ps = pose_msg->pose.position;
-        auto orientation_ps = pose_msg->pose.orientation;
-
-        RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position_ps.x, position_ps.y, position_ps.z);
-        RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_ps.x, orientation_ps.y, orientation_ps.z, orientation_ps.w);
-        
-        // Process the PoseStamped message
-    }
+   }
 };
 
 int main(int argc, char **argv)
@@ -118,3 +146,4 @@ int main(int argc, char **argv)
     rclcpp::shutdown();
     return 0;
 }
+
