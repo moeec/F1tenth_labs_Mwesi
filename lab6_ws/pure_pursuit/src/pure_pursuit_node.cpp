@@ -32,7 +32,10 @@ public:
         sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/ego_racecar/odom", 1000, std::bind(&PurePursuit::callback, this, std::placeholders::_1));
 
-        marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);       
+        marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);
+       
+
+        
    }
 
 private:
@@ -45,6 +48,7 @@ private:
     std::vector<double> headings;
     double angle;
     double heading_current;
+    
 
     // Callback function for handling Odometry messages
     void callback(const nav_msgs::msg::Odometry::SharedPtr msg)
@@ -60,6 +64,7 @@ private:
 
         // Publish the marker for visualization
         publish_marker(angle);
+
     }
 
     // Callback for PoseStamped messages
@@ -129,7 +134,7 @@ private:
         marker.lifetime = rclcpp::Duration(0.8);
 
         marker_pub_->publish(marker);
-        RCLCPP_INFO(this->get_logger(),"publish_marker: points.x=%.2f", points.x);
+        RCLCPP_INFO(this->get_logger(),"publish_marker to waypoint: x=%.2f, y=%2f, z=%2f", points.x, points.y, points.z);
 
    }
 };
