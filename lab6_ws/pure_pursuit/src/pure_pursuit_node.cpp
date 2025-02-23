@@ -6,10 +6,15 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/point.hpp"
+#include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
 
 #include "csv.h"
 #include "math.h"
+
+#define PI 3.1415927
+#define RAD2DEG(x) ((x)*180./PI)
+#define DEG2RAD(x) ((x)/180.0*PI)
 
 struct DataRow {
     double column1;
@@ -32,16 +37,16 @@ public:
         sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/ego_racecar/odom", 1000, std::bind(&PurePursuit::callback, this, std::placeholders::_1));
 
-        marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);
-       
 
-        
+        marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);
+        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1000);
    }
 
 private:
     // Subscription to Odometry
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr sub_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
+    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
 
     std::vector<double> xes;
     std::vector<double> yes;
@@ -79,6 +84,36 @@ private:
         RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_ps.x, orientation_ps.y, orientation_ps.z, orientation_ps.w);
         
         // Process the PoseStamped message
+    }
+
+    void drive() 
+    {
+
+        // Create and publish the drive message
+        ackermann_msgs::msg::AckermannDriveStamped drive_msg;
+        drive_msg.header.stamp = this->now();
+        drive_msg.header.frame_id = "laser";
+
+        // Set steering angle and speed
+        float steering_angle;
+        drive_msg.drive.steering_angle = steering_angle;
+
+        // Speed control based on steering angle
+        float abs_steering_angle = std::abs(steering_angle);
+        if (abs_steering_angle > DEG2RAD(20.0))
+        {
+            drive_msg.drive.speed = 0.2;
+        }
+        else if (abs_steering_angle > DEG2RAD(10.0))
+        {
+            drive_msg.drive.speed = 0.35;
+        }
+        else
+        {
+            drive_msg.drive.speed = 0.52;
+        }
+
+        ackermann_publisher_->publish(drive_msg);
     }
 
     void publish_marker(double angle) 
