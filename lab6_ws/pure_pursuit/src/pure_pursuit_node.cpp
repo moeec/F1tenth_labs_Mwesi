@@ -16,16 +16,6 @@
 #define RAD2DEG(x) ((x)*180./PI)
 #define DEG2RAD(x) ((x)/180.0*PI)
 
-struct DataRow {
-    double column1;
-    double column2;
-    double column3;
-
-    // Constructor
-    DataRow(double x, double y, double z) : column1(x), column2(y), column3(z) {}
-};
-
-std::vector<DataRow> data;
 const std::string filename = "waypoints.csv";
 
 class PurePursuit : public rclcpp::Node
@@ -116,9 +106,14 @@ private:
 
         auto position_odom = msg->pose.pose.position;
         auto orientation_odom = msg->pose.pose.orientation;
-        
+       
+        double distance_next_x_wp = xes[0]-position_odom.x;
+        double distance_next_y_wp = yes[0]-position_odom.y; 
+
         RCLCPP_INFO(this->get_logger(),"nav_msgs:Current Position is: x=%.2f, y=%.2f, z=%.2f", position_odom.x, position_odom.y, position_odom.z);
         RCLCPP_INFO(this->get_logger(),"nav_msgs:Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_odom.x, orientation_odom.y, orientation_odom.z, orientation_odom.w);
+        RCLCPP_INFO(this->get_logger(),"Next waypoint: x=%.2f, y=%2f", xes[0], yes[0]);
+        RCLCPP_INFO(this->get_logger(),"Distance to next waypoint: x=%.2f, y=%2f", distance_next_x_wp, distance_next_y_wp);
 
     }
 
@@ -142,7 +137,7 @@ private:
         // Create and publish the drive message
         ackermann_msgs::msg::AckermannDriveStamped drive_msg;
         drive_msg.header.stamp = this->now();
-        drive_msg.header.frame_id = "laser";
+        drive_msg.header.frame_id = "/map";
 
         // Set steering angle and speed
         float steering_angle;
@@ -175,4 +170,5 @@ int main(int argc, char **argv)
     rclcpp::shutdown();
     return 0;
 }
+
 
