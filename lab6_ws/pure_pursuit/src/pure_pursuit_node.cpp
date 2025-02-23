@@ -40,7 +40,60 @@ public:
 
         marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1000);
-   }
+
+        io::CSVReader<3> in("waypoints.csv");
+
+        double x;
+        double y;
+        double heading;
+
+        // reading in waypints data from csv
+        // based off of https://wiki.ros.org/rviz/DisplayTypes/Marker
+
+        visualization_msgs::msg::Marker marker;
+        marker.header.frame_id = "/map";
+        marker.header.stamp = this->now();
+        marker.ns = "waypoint_marker";
+        marker.id = 0;
+        marker.type = visualization_msgs::msg::Marker::SPHERE;
+        marker.action = visualization_msgs::msg::Marker::ADD;
+        marker.pose.position.x = 0.0;
+        marker.pose.position.y = 0.0;
+        marker.pose.position.z = 0.0;
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+
+        marker.scale.x = 0.1;
+        marker.scale.y = 0.1;
+        marker.scale.z = 0.1;
+
+        marker.color.a = 1.0;
+        marker.color.r = 1.0;
+        marker.color.g = 0.0;
+        marker.color.b = 0.0;
+
+        geometry_msgs::msg::Point points;
+
+        while (in.read_row(x, y, heading)) 
+        {
+            xes.push_back(x);
+            yes.push_back(y);
+            headings.push_back(heading);
+            points.x = x;
+            points.y = y;
+            points.z = 0.0;
+            marker.points.push_back(points);
+            //debug below
+        }
+
+        marker.lifetime = rclcpp::Duration(0.8);
+
+        marker_pub_->publish(marker);
+        RCLCPP_INFO(this->get_logger(),"publish_marker to waypoint: x=%.2f, y=%2f, z=%2f", points.x, points.y, points.z);
+   
+    }
 
 private:
     // Subscription to Odometry
@@ -66,9 +119,6 @@ private:
         
         RCLCPP_INFO(this->get_logger(),"nav_msgs:Current Position is: x=%.2f, y=%.2f, z=%.2f", position_odom.x, position_odom.y, position_odom.z);
         RCLCPP_INFO(this->get_logger(),"nav_msgs:Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_odom.x, orientation_odom.y, orientation_odom.z, orientation_odom.w);
-
-        // Publish the marker for visualization
-        publish_marker(angle);
 
     }
 
@@ -116,62 +166,6 @@ private:
         ackermann_publisher_->publish(drive_msg);
     }
 
-    void publish_marker(double angle) 
-    {
-
-        io::CSVReader<3> csv_input("waypoints.csv");
-
-        double x;
-        double y;
-        double heading;
-
-        // reading in waypints data from csv
-        // based off of https://wiki.ros.org/rviz/DisplayTypes/Marker
-
-        visualization_msgs::msg::Marker marker;
-        marker.header.frame_id = "/map";
-        marker.header.stamp = this->now();
-        marker.ns = "waypoint_marker";
-        marker.id = 0;
-        marker.type = visualization_msgs::msg::Marker::SPHERE;
-        marker.action = visualization_msgs::msg::Marker::ADD;
-        marker.pose.position.x = 0.0;
-        marker.pose.position.y = 0.0;
-        marker.pose.position.z = 0.0;
-        marker.pose.orientation.x = 0.0;
-        marker.pose.orientation.y = 0.0;
-        marker.pose.orientation.z = 0.0;
-        marker.pose.orientation.w = 1.0;
-
-        marker.scale.x = 0.1;
-        marker.scale.y = 0.1;
-        marker.scale.z = 0.1;
-
-        marker.color.a = 1.0;
-        marker.color.r = 1.0;
-        marker.color.g = 0.0;
-        marker.color.b = 0.0;
-
-        geometry_msgs::msg::Point points;
-
-        while (csv_input.read_row(x, y, heading)) 
-        {
-            xes.push_back(x);
-            yes.push_back(y);
-            headings.push_back(heading);
-            points.x = x;
-            points.y = y;
-            points.z = 0.0;
-            marker.points.push_back(points);
-            //debug below
-        }
-
-        marker.lifetime = rclcpp::Duration(0.8);
-
-        marker_pub_->publish(marker);
-        RCLCPP_INFO(this->get_logger(),"publish_marker to waypoint: x=%.2f, y=%2f, z=%2f", points.x, points.y, points.z);
-
-   }
 };
 
 int main(int argc, char **argv)
