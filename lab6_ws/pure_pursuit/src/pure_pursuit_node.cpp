@@ -120,11 +120,19 @@ private:
 
           steering_angle = DEG2RAD(tan (distance_next_x_wp/distance_next_y_wp));
           drive();
+
+          distance_next_x_wp = xes[i]-position_odom.x;
+          distance_next_y_wp = yes[i]-position_odom.y;
+
+          if((distance_next_x_wp + distance_next_y_wp ) < 0.005)
+          {
+            RCLCPP_INFO(this->get_logger(), "Reached Waypoint; moving onto next...");
+          }
+          else{drive();}
         }
         
         RCLCPP_INFO(this->get_logger(),"nav_msgs:Current Position is: x=%.2f, y=%.2f, z=%.2f", position_odom.x, position_odom.y, position_odom.z);
         RCLCPP_INFO(this->get_logger(),"nav_msgs:Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_odom.x, orientation_odom.y, orientation_odom.z, orientation_odom.w);
-        RCLCPP_INFO(this->get_logger(),"Next waypoint: x=%.2f, y=%2f", xes[0], yes[0]);
         RCLCPP_INFO(this->get_logger(),"Distance to next waypoint: x=%.2f, y=%2f", distance_next_x_wp, distance_next_y_wp);
     }
 
