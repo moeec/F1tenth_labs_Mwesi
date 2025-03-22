@@ -144,6 +144,10 @@ private:
         auto position_ps = pose_msg->pose.position;
         auto orientation_ps = pose_msg->pose.orientation;
 
+        double siny_cosp = 2.0 * (orientation_ps.w * orientation_ps.z + orientation_ps.x * orientation_ps.y);
+        double cosy_cosp = 1.0 - 2.0 * (orientation_ps.y * orientation_ps.y + orientation_ps.z * orientation_ps.z);
+        auto heading_current = std::atan2(siny_cosp, cosy_cosp);
+
         RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position_ps.x, position_ps.y, position_ps.z);
         RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_ps.x, orientation_ps.y, orientation_ps.z, orientation_ps.w);
         
