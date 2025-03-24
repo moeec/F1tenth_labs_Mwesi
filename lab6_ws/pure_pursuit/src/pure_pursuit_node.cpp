@@ -110,6 +110,14 @@ private:
        
         double distance_next_x_wp;
         double distance_next_y_wp;
+
+        /*Quaternion to Euler (Yaw) Conversion
+        Given (w,x,y,z)
+        yaw(heading) = atan2( 2*(w*z + x*y), 1 - 2*(y*y + z*z) )*/ 
+
+        double siny_cosp = 2.0 * (orientation_odom.w * orientation_odom.z + orientation_odom.x * orientation_odom.y);
+        double cosy_cosp = 1.0 - 2.0 * (orientation_odom.y * orientation_odom.y + orientation_odom.z * orientation_odom.z);
+        auto heading_current = std::atan2(siny_cosp, cosy_cosp);
         
         for(int i=0; i < int(xes.size()); i++)
         {
@@ -144,6 +152,12 @@ private:
         auto position_ps = pose_msg->pose.position;
         auto orientation_ps = pose_msg->pose.orientation;
 
+        
+        /*Quaternion to Euler (Yaw) Conversion
+        Given (w,x,y,z)
+        yaw(heading) = atan2( 2*(w*z + x*y), 1 - 2*(y*y + z*z) )*/ 
+        
+        
         double siny_cosp = 2.0 * (orientation_ps.w * orientation_ps.z + orientation_ps.x * orientation_ps.y);
         double cosy_cosp = 1.0 - 2.0 * (orientation_ps.y * orientation_ps.y + orientation_ps.z * orientation_ps.z);
         auto heading_current = std::atan2(siny_cosp, cosy_cosp);
