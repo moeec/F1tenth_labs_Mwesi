@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <limits>
 #include "rclcpp/rclcpp.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -118,24 +119,34 @@ private:
         double siny_cosp = 2.0 * (orientation_odom.w * orientation_odom.z + orientation_odom.x * orientation_odom.y);
         double cosy_cosp = 1.0 - 2.0 * (orientation_odom.y * orientation_odom.y + orientation_odom.z * orientation_odom.z);
         auto heading_current = std::atan2(siny_cosp, cosy_cosp);
+
+        double shortest_distance_to_next_wp = std::numeric_limits<double>::max();
         
         for(int i=0; i < int(xes.size()); i++)
         {
-          distance_next_x_wp = xes[i]-position_odom.x;
-          distance_next_y_wp = yes[i]-position_odom.y;
+            distance_next_x_wp = xes[i]-position_odom.x;
+            distance_next_y_wp = yes[i]-position_odom.y;
+            
+            
+            if((tan(distance_next_x_wp/distance_next_y_wp)) < shortest_distance_to_next_wp)
+            {
+                shortest_distance_to_next_wp = tan(distance_next_x_wp/distance_next_y_wp); 
+            }
+          
 
-          RCLCPP_INFO(this->get_logger(),"Next waypoint: x=%.2f, y=%2f", xes[i], yes[i]);
+            RCLCPP_INFO(this->get_logger(),"Next waypoint: x=%.2f, y=%2f", xes[i], yes[i]);
 
-          steering_angle = DEG2RAD(tan (distance_next_x_wp/distance_next_y_wp));
-          drive();
+            steering_angle = DEG2RAD(tan (distance_next_x_wp/distance_next_y_wp));
+            drive();
 
-          distance_next_x_wp = xes[i]-position_odom.x;
-          distance_next_y_wp = yes[i]-position_odom.y;
+            distance_next_x_wp = xes[i]-position_odom.x;
+            distance_next_y_wp = yes[i]-position_odom.y;
 
-          if((distance_next_x_wp + distance_next_y_wp ) < 0.005)
-          {
-            RCLCPP_INFO(this->get_logger(), "Reached Waypoint; moving onto next...");
-          }
+            if((distance_next_x_wp + distance_next_y_wp ) < 0.005)
+            {
+                RCLCPP_INFO(this->get_logger(), "Reached Waypoint; moving onto next...");
+            }
+
           else{drive();}
         }
         
