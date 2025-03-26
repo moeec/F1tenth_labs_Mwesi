@@ -96,6 +96,7 @@ private:
     std::vector<double> yes;
     std::vector<double> headings;
     double angle;
+    double distance;
     double heading_current;
     float steering_angle;
     
@@ -120,35 +121,35 @@ private:
         double cosy_cosp = 1.0 - 2.0 * (orientation_odom.y * orientation_odom.y + orientation_odom.z * orientation_odom.z);
         auto heading_current = std::atan2(siny_cosp, cosy_cosp);
 
+        RCLCPP_INFO(this->get_logger(),"nav_msgs:Heading_current: %.2f", heading_current);
+
         double shortest_distance_to_next_wp = std::numeric_limits<double>::max();
         
         for(int i=0; i < int(xes.size()); i++)
         {
             distance_next_x_wp = xes[i]-position_odom.x;
             distance_next_y_wp = yes[i]-position_odom.y;
+
+            angle = std::atan2(distance_next_y_wp, distance_next_x_wp);
+            distance = sqrt((distance_next_x_wp * distance_next_x_wp) + (distance_next_y_wp * distance_next_y_wp));
+
+            RCLCPP_INFO(this->get_logger(),"nav_msgs:Angle: %.2f", angle);
+
+            RCLCPP_INFO(this->get_logger(),"nav_msgs:Distance: %.2f", distance);
             
-            
-            if((tan(distance_next_x_wp/distance_next_y_wp)) < shortest_distance_to_next_wp)
+            if(distance < shortest_distance_to_next_wp)
             {
-                shortest_distance_to_next_wp = tan(distance_next_x_wp/distance_next_y_wp); 
+                shortest_distance_to_next_wp = distance; 
+                RCLCPP_INFO(this->get_logger(),"nav_msgs: Shortest distance: %.2f", distance);
             }
           
 
             RCLCPP_INFO(this->get_logger(),"Next waypoint: x=%.2f, y=%2f", xes[i], yes[i]);
 
-            steering_angle = DEG2RAD(tan (distance_next_x_wp/distance_next_y_wp));
-            drive();
-
-            distance_next_x_wp = xes[i]-position_odom.x;
-            distance_next_y_wp = yes[i]-position_odom.y;
-
-            if((distance_next_x_wp + distance_next_y_wp ) < 0.005)
-            {
-                RCLCPP_INFO(this->get_logger(), "Reached Waypoint; moving onto next...");
-            }
-
-          else{drive();}
+            steering_angle = angle;   
         }
+
+        drive();
         
         RCLCPP_INFO(this->get_logger(),"nav_msgs:Current Position is: x=%.2f, y=%.2f, z=%.2f", position_odom.x, position_odom.y, position_odom.z);
         RCLCPP_INFO(this->get_logger(),"nav_msgs:Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_odom.x, orientation_odom.y, orientation_odom.z, orientation_odom.w);
