@@ -32,8 +32,16 @@ public:
         marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1000);
 
-        io::CSVReader<3> in("waypoints.csv");
+        std::ifstream file_check("waypoints.csv");
+        if (!file_check.is_open())
+        {
+          RCLCPP_ERROR(this->get_logger(), "Failed to open waypoints.csv");
+          return;
+        }
+        file_check.close();
 
+
+        io::CSVReader<3> in("waypoints.csv");
         double x;
         double y;
         double heading;
@@ -66,6 +74,7 @@ public:
         marker.color.b = 0.0;
 
         geometry_msgs::msg::Point points;
+        
 
         while (in.read_row(x, y, heading)) 
         {
@@ -76,13 +85,12 @@ public:
             points.y = y;
             points.z = 0.0;
             marker.points.push_back(points);
-            //debug below
         }
 
-        marker.lifetime = rclcpp::Duration(0.8);
+       // marker.lifetime = rclcpp::Duration(0.8);
 
         marker_pub_->publish(marker);
-        RCLCPP_INFO(this->get_logger(),"publish_marker to waypoint: x=%.2f, y=%2f, z=%2f", points.x, points.y, points.z);
+        RCLCPP_INFO(this->get_logger(),"IO read in: publish_marker to waypoint: x=%.2f, y=%2f, z=%2f", points.x, points.y, points.z);
    
     }
 
@@ -121,14 +129,18 @@ private:
         double cosy_cosp = 1.0 - 2.0 * (orientation_odom.y * orientation_odom.y + orientation_odom.z * orientation_odom.z);
         auto heading_current = std::atan2(siny_cosp, cosy_cosp);
 
+       // RCLCPP_INFO(this->get_logger(), "points.x %.2f", points.x());
+
         RCLCPP_INFO(this->get_logger(),"nav_msgs:Heading_current: %.2f", heading_current);
 
         double shortest_distance_to_next_wp = std::numeric_limits<double>::max();
         
-        for(int i=0; i < int(xes.size()); i++)
+        for(size_t i = 0; i < xes.size(); i++)
         {
             distance_next_x_wp = xes[i]-position_odom.x;
             distance_next_y_wp = yes[i]-position_odom.y;
+            
+            RCLCPP_INFO(this->get_logger(),"---------------------------------------------------------------------------------------------------------------------------------------------------");
 
             angle = std::atan2(distance_next_y_wp, distance_next_x_wp);
             distance = sqrt((distance_next_x_wp * distance_next_x_wp) + (distance_next_y_wp * distance_next_y_wp));
