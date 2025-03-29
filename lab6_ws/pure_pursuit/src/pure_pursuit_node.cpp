@@ -96,7 +96,7 @@ private:
 
         //RCLCPP_INFO(this->get_logger(), "Odom read %.2f", points.x());
 
-        RCLCPP_INFO(this->get_logger(),"nav_msgs:Heading_current:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- %.2f", RAD2DEG(heading_current));
+        RCLCPP_INFO(this->get_logger(),"nav_msgs:Heading_current:--------------------<^>----------------------- %.2f", RAD2DEG(heading_current));
 
         double shortest_distance_to_next_wp = std::numeric_limits<double>::max();
         
