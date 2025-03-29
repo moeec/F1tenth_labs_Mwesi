@@ -106,7 +106,7 @@ private:
             distance_next_y_wp = yes[0]-position_odom.y;
             matrix = static_cast<int>(i);
            
-           if(abs(distance_next_x_wp) < 1.0) 
+           if(abs(distance_next_x_wp) < 0.4 || abs(prev_distance_x_wp) < 0.4) 
            {
              RCLCPP_INFO(this->get_logger(),"Distance to next x: %.2f", distance_next_x_wp);
            }
