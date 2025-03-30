@@ -48,12 +48,12 @@ public:
 
         // reading in waypints data from csv
 
-        while (in.read_row(x, y, heading)) 
+        while (in.read_row(x, y, heading))
         {
             xes.push_back(x);
             yes.push_back(y);
             headings.push_back(heading);
-        }   
+        }
     }
 
 private:
@@ -71,8 +71,8 @@ private:
     double prev_distance_y_wp = 100.00;
     double heading_current;
     float steering_angle;
-    int matrix;
-    
+    int wp_viz;
+
 
     // Callback function for handling Odometry messages
     void callback(const nav_msgs::msg::Odometry::SharedPtr msg)
@@ -82,13 +82,13 @@ private:
 
         auto position_odom = msg->pose.pose.position;
         auto orientation_odom = msg->pose.pose.orientation;
-       
+
         double distance_next_x_wp;
         double distance_next_y_wp;
 
         /*Quaternion to Euler (Yaw) Conversion
         Given (w,x,y,z)
-        yaw(heading) = atan2( 2*(w*z + x*y), 1 - 2*(y*y + z*z) )*/ 
+        yaw(heading) = atan2( 2*(w*z + x*y), 1 - 2*(y*y + z*z) )*/
 
         double siny_cosp = 2.0 * (orientation_odom.w * orientation_odom.z + orientation_odom.x * orientation_odom.y);
         double cosy_cosp = 1.0 - 2.0 * (orientation_odom.y * orientation_odom.y + orientation_odom.z * orientation_odom.z);
@@ -96,37 +96,75 @@ private:
 
         //RCLCPP_INFO(this->get_logger(), "Odom read %.2f", points.x());
 
-        RCLCPP_INFO(this->get_logger(),"nav_msgs:Heading_current:--------------------<^>----------------------- %.2f", RAD2DEG(heading_current));
+       /*\033[1m = bold
+         \033[31m = red   */
+
+        RCLCPP_INFO(this->get_logger(), "\n\033[1;31mHEADING_CURRENT: --------------------------------------------------<^>------------------------------------- %.2f\033[0m\n", RAD2DEG(heading_current));
 
         double shortest_distance_to_next_wp = std::numeric_limits<double>::max();
-        
+
         for(size_t i = 0; i < xes.size(); i++)
         {
             distance_next_x_wp = xes[0]-position_odom.x;
             distance_next_y_wp = yes[0]-position_odom.y;
-            matrix = static_cast<int>(i);
-           
-           if(abs(distance_next_x_wp) < 0.4 || abs(prev_distance_x_wp) < 0.4) 
+            wp_viz = static_cast<int>(i);
+
+           // based off of https://wiki.ros.org/rviz/DisplayTypes/Marker
+
+            visualization_msgs::msg::Marker marker;
+
+            marker.header.frame_id = "/map";
+            marker.header.stamp = rclcpp::Clock().now();
+
+            marker.ns = "waypoint_marker";
+            marker.id = 0;
+
+            marker.type = visualization_msgs::msg::Marker::SPHERE;
+
+            marker.action = visualization_msgs::msg::Marker::ADD;
+
+            marker.pose.position.x = xes[wp_viz];
+            marker.pose.position.y = yes[wp_viz];
+            marker.pose.position.z = 0;
+            marker.pose.orientation.x = 0.0;
+            marker.pose.orientation.y = 0.0;
+            marker.pose.orientation.z = 0.0;
+            marker.pose.orientation.w = 1.0;
+
+            marker.scale.x = 0.2;
+            marker.scale.y = 0.2;
+            marker.scale.z = 0.2;
+
+            marker.color.r = 0.0f;
+            marker.color.g = 1.0f;
+            marker.color.b = 0.0f;
+            marker.color.a = 1.0;   // Don't forget to set the alpha!
+
+            marker.lifetime = rclcpp::Duration(0,0);
+
+            marker_pub_->publish(marker);
+
+           if(abs(distance_next_x_wp) < 0.2 || abs(prev_distance_x_wp) < 0.2)
            {
-             RCLCPP_INFO(this->get_logger(),"Distance to next x: %.2f", distance_next_x_wp);
+             RCLCPP_INFO(this->get_logger(), "\033[1;31m====================== Distance to next x: %.2f ======================\033[0m", distance_next_x_wp);
            }
            else
            {
              RCLCPP_INFO(this->get_logger(),"Far from next x, correcting: %.2f", distance_next_x_wp);
-             if(prev_distance_x_wp > distance_next_x_wp)
+             if(prev_distance_x_wp < distance_next_x_wp)
              {
                prev_distance_x_wp = distance_next_x_wp;
-             } 
+             }
            }
 
-           if(abs(distance_next_y_wp) < 1.0) 
+           if(abs(distance_next_y_wp) < 0.2 || abs(prev_distance_y_wp) < 0.2)
            {
-             RCLCPP_INFO(this->get_logger(),"Distance to next y: %.2f", distance_next_y_wp); 
+             RCLCPP_INFO(this->get_logger(), "\033[1;31m====================== Distance to next y: %.2f ======================\033[0m", distance_next_y_wp);
            }
            else
            {
              RCLCPP_INFO(this->get_logger(),"Far from next y, correcting: %.2f", distance_next_y_wp);
-             if(prev_distance_y_wp > distance_next_y_wp)
+             if(prev_distance_y_wp < distance_next_y_wp)
              {
                prev_distance_y_wp = distance_next_y_wp;
              }
@@ -137,60 +175,34 @@ private:
             RCLCPP_INFO(this->get_logger(),"Angle to Waypoint: %.2f", RAD2DEG(angle));
             RCLCPP_INFO(this->get_logger(),"Distance to next Waypoint: %.2f", distance);
 
-            //RCLCPP_INFO(this->get_logger(),"nav_msgs:Angle: %.2f",RAD2DEG(angle));
 
-            //RCLCPP_INFO(this->get_logger(),"nav_msgs:Distance: %.2f", distance);
-            
             if(distance < shortest_distance_to_next_wp)
             {
-                shortest_distance_to_next_wp = distance; 
+                shortest_distance_to_next_wp = distance;
                 RCLCPP_INFO(this->get_logger(),"nav_msgs: Shortest distance: %.2f", distance);
             }
-          
+
+            if(distance < 6.0)
+            {
+                RCLCPP_INFO(this->get_logger(),"Attempting to move to Waypoint");
+                steering_angle = angle;
+                drive();
+                while ((distance_next_x_wp + distance_next_y_wp) > 4)
+                {
+                  for(size_t j = 0; j < xes.size(); j++)
+                  {
+                    distance_next_x_wp = xes[0]-position_odom.x;
+                    distance_next_y_wp = yes[0]-position_odom.y;
+                    RCLCPP_INFO(this->get_logger(),"\n.2f", distance);
+                  }
+                }
+
+            }
 
             RCLCPP_INFO(this->get_logger(),"Next waypoint: x=%.2f, y=%2f", xes[i], yes[i]);
-
-            steering_angle = angle;   
         }
 
-        drive();
 
-        // based off of https://wiki.ros.org/rviz/DisplayTypes/Marker
-        
-        visualization_msgs::msg::Marker marker;
-
-        marker.header.frame_id = "/map";
-        marker.header.stamp = rclcpp::Clock().now();
-
-        marker.ns = "waypoint_marker";
-        marker.id = 0;
-
-        marker.type = visualization_msgs::msg::Marker::SPHERE;
-
-        marker.action = visualization_msgs::msg::Marker::ADD;
-
-        marker.pose.position.x = xes[0];
-        marker.pose.position.y = yes[0];
-        marker.pose.position.z = 0;
-        marker.pose.orientation.x = 0.0;
-        marker.pose.orientation.y = 0.0;
-        marker.pose.orientation.z = 0.0;
-        marker.pose.orientation.w = 1.0;
-
-        marker.scale.x = 0.2;
-        marker.scale.y = 0.2;
-        marker.scale.z = 0.2;
-
-        marker.color.r = 0.0f;
-        marker.color.g = 1.0f;
-        marker.color.b = 0.0f;
-        marker.color.a = 1.0;   // Don't forget to set the alpha!
-
-        marker.lifetime = rclcpp::Duration(0,0);
-
-        marker_pub_->publish(marker);
-
-        
         //RCLCPP_INFO(this->get_logger(),"nav_msgs:Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_odom.x, orientation_odom.y, orientation_odom.z, orientation_odom.w);
         //RCLCPP_INFO(this->get_logger(),"Distance to next waypoint: x=%.2f, y=%2f", distance_next_x_wp, distance_next_y_wp);
     }
@@ -203,23 +215,22 @@ private:
         auto position_ps = pose_msg->pose.position;
         auto orientation_ps = pose_msg->pose.orientation;
 
-        
+
         /*Quaternion to Euler (Yaw) Conversion
         Given (w,x,y,z)
-        yaw(heading) = atan2( 2*(w*z + x*y), 1 - 2*(y*y + z*z) )*/ 
-        
-        
+        yaw(heading) = atan2( 2*(w*z + x*y), 1 - 2*(y*y + z*z) )*/
+
         double siny_cosp = 2.0 * (orientation_ps.w * orientation_ps.z + orientation_ps.x * orientation_ps.y);
         double cosy_cosp = 1.0 - 2.0 * (orientation_ps.y * orientation_ps.y + orientation_ps.z * orientation_ps.z);
         auto heading_current = std::atan2(siny_cosp, cosy_cosp);
 
         RCLCPP_INFO(this->get_logger(),"Current Position is: x=%.2f, y=%.2f, z=%.2f", position_ps.x, position_ps.y, position_ps.z);
         RCLCPP_INFO(this->get_logger(),"Orientation (qx=%.2f, qy=%.2f, qz=%.2f, qw=%.2f)", orientation_ps.x, orientation_ps.y, orientation_ps.z, orientation_ps.w);
-        
+
         // Process the PoseStamped message
     }
 
-    void drive() 
+    void drive()
     {
 
         // Create and publish the drive message
