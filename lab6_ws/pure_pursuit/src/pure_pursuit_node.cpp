@@ -30,7 +30,7 @@ public:
 
 
         marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);
-        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1000);
+        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
 
         std::ifstream file_check("waypoints.csv");
         if (!file_check.is_open())
@@ -70,7 +70,9 @@ private:
     double prev_distance_y_wp = 100.00;
     double heading_current;
     float steering_angle;
-    int wp_viz;
+    float abs_steering_angle;
+    int last_good_wp;
+    bool lock_steering = false;
 
 
     // Callback function for handling Odometry messages
@@ -85,14 +87,9 @@ private:
         double distance_next_x_wp;
         double distance_next_y_wp;
 
-        /*Quaternion to Euler (Yaw) Conversion
-        Given (w,x,y,z)
-        yaw(heading) = atan2( 2*(w*z + x*y), 1 - 2*(y*y + z*z) )*/
+        
 
-        double siny_cosp = 2.0 * (orientation_odom.w * orientation_odom.z + orientation_odom.x * orientation_odom.y);
-        double cosy_cosp = 1.0 - 2.0 * (orientation_odom.y * orientation_odom.y + orientation_odom.z * orientation_odom.z);
-        auto heading_current = std::atan2(siny_cosp, cosy_cosp);
-
+        
         //RCLCPP_INFO(this->get_logger(), "Odom read %.2f", points.x());
 
        /*\033[1m = bold
@@ -104,63 +101,82 @@ private:
 
         for(size_t i = 0; i < xes.size(); i++)
         {
+
+             // based off of https://wiki.ros.org/rviz/DisplayTypes/Marker
+
+             visualization_msgs::msg::Marker marker;
+
+             marker.header.frame_id = "/map";
+             marker.header.stamp = rclcpp::Clock().now();
+ 
+             marker.ns = "waypoint_marker";
+             marker.id = 0;
+ 
+             marker.type = visualization_msgs::msg::Marker::SPHERE;
+ 
+             marker.action = visualization_msgs::msg::Marker::ADD;
+ 
+             marker.pose.position.x = xes[last_good_wp];
+             marker.pose.position.y = yes[last_good_wp];
+             marker.pose.position.z = 0;
+             marker.pose.orientation.x = 0.0;
+             marker.pose.orientation.y = 0.0;
+             marker.pose.orientation.z = 0.0;
+             marker.pose.orientation.w = 1.0;
+ 
+             marker.scale.x = 0.2;
+             marker.scale.y = 0.2;
+             marker.scale.z = 0.2;
+ 
+             marker.color.r = 0.0f;
+             marker.color.g = 1.0f;
+             marker.color.b = 0.0f;
+             marker.color.a = 1.0;   // Don't forget to set the alpha!
+ 
+             marker.lifetime = rclcpp::Duration(0,0);
+ 
+             marker_pub_->publish(marker);
+ 
             distance_next_x_wp = xes[i]-position_odom.x;
             distance_next_y_wp = yes[i]-position_odom.y;
-            steering_angle = std::atan2(distance_next_y_wp, distance_next_x_wp);
-            wp_viz = static_cast<int>(i);
+
+
+            /*Quaternion to Euler (Yaw) Conversion
+            Given (w,x,y,z)
+            yaw(heading) = atan2( 2*(w*z + x*y), 1 - 2*(y*y + z*z) )*/
             double siny_cosp = 2.0 * (orientation_odom.w * orientation_odom.z + orientation_odom.x * orientation_odom.y);
             double cosy_cosp = 1.0 - 2.0 * (orientation_odom.y * orientation_odom.y + orientation_odom.z * orientation_odom.z);
             distance = sqrt((distance_next_x_wp * distance_next_x_wp) + (distance_next_y_wp * distance_next_y_wp));
+            heading_current = std::atan2(siny_cosp, cosy_cosp);
+            if(RAD2DEG(heading_current) >  45)
+            {
+              steering_angle = std::atan2(distance_next_x_wp, distance_next_y_wp);
+              RCLCPP_INFO(this->get_logger(), "\n\033[1;31mHEADING_CURRENT: --------------------------------------------------<^>------------------------------------- %.2f\033[0m\n", RAD2DEG(heading_current));
+            }
+            else
+            {
+              steering_angle = std::atan2(distance_next_y_wp, distance_next_x_wp);
+            }
 //            RCLCPP_INFO(this->get_logger(),"Arctancheck: %.2f", RAD2DEG(steering_angle));
 //            RCLCPP_INFO(this->get_logger(),"Headingcheck: %.2f", RAD2DEG(heading_current));
-
-           // based off of https://wiki.ros.org/rviz/DisplayTypes/Marker
-
-            visualization_msgs::msg::Marker marker;
-
-            marker.header.frame_id = "/map";
-            marker.header.stamp = rclcpp::Clock().now();
-
-            marker.ns = "waypoint_marker";
-            marker.id = 0;
-
-            marker.type = visualization_msgs::msg::Marker::SPHERE;
-
-            marker.action = visualization_msgs::msg::Marker::ADD;
-
-            marker.pose.position.x = xes[i];
-            marker.pose.position.y = yes[i];
-            marker.pose.position.z = 0;
-            marker.pose.orientation.x = 0.0;
-            marker.pose.orientation.y = 0.0;
-            marker.pose.orientation.z = 0.0;
-            marker.pose.orientation.w = 1.0;
-
-            marker.scale.x = 0.2;
-            marker.scale.y = 0.2;
-            marker.scale.z = 0.2;
-
-            marker.color.r = 0.0f;
-            marker.color.g = 1.0f;
-            marker.color.b = 0.0f;
-            marker.color.a = 1.0;   // Don't forget to set the alpha!
-
-            marker.lifetime = rclcpp::Duration(0,0);
-
-            marker_pub_->publish(marker);
-
-           if(distance < 2.75 && distance > 0 && abs(RAD2DEG(steering_angle)) < 95)
+           
+           
+           if(abs(distance) < 2.8 && abs(distance) > 0 && abs(RAD2DEG(steering_angle)) < 100)
            {
              RCLCPP_INFO(this->get_logger(), "\033[1;31m====================== Distance to next x: %.2f(CLOSE) ======================\033[0m", distance_next_x_wp);
              RCLCPP_INFO(this->get_logger(), "\033[1;31m====================== Distance to next y: %.2f(CLOSE) ======================\033[0m", distance_next_y_wp);
-             steering_angle = std::atan2(distance_next_y_wp, distance_next_x_wp);
+             distance_next_x_wp = xes[i]-position_odom.x;
+             distance_next_y_wp = yes[i]-position_odom.y;
+             steering_angle = std::atan2(distance_next_y_wp, distance_next_x_wp);  // or your normal logic
+             heading_current = std::atan2(siny_cosp, cosy_cosp); 
+             last_good_wp = i;
              RCLCPP_INFO(this->get_logger(),"callback: Angle to Waypoint: %.2f", RAD2DEG(steering_angle));
              RCLCPP_INFO(this->get_logger(),"callback: Heading Currently: %.2f", RAD2DEG(heading_current));
              drive();
+             stop();
            }
            else
            {
-            // stop();
              i++;
            }
 
@@ -202,8 +218,6 @@ private:
     {
 
         // Create and publish the drive message
-        RCLCPP_INFO(this->get_logger(),"drive: Inside drive function");
-        RCLCPP_INFO(this->get_logger(),"drive: Steering Angle is: %f", RAD2DEG(steering_angle));
 
         ackermann_msgs::msg::AckermannDriveStamped drive_msg;
        
@@ -214,13 +228,17 @@ private:
         
         drive_msg.drive.steering_angle = steering_angle;
 
+        RCLCPP_INFO(this->get_logger(),"drive: Steering Angle is: %f", RAD2DEG(steering_angle));
+        RCLCPP_INFO(this->get_logger(),"drive: Heading Currently: %.2f", RAD2DEG(heading_current));
+
         // Speed control based on steering angle
-        float abs_steering_angle = std::abs(steering_angle);
+        abs_steering_angle = std::abs(steering_angle);
         if (abs_steering_angle > DEG2RAD(20.0))
         {
-            drive_msg.drive.speed = 0.1;
+            drive_msg.drive.speed = 0.35;
+            RCLCPP_INFO(this->get_logger(),"angle >20 degrees: %f", RAD2DEG(steering_angle));
         }
-        else if (abs_steering_angle > DEG2RAD(10.0))
+        else if (abs_steering_angle > DEG2RAD(5.0))
         {
             drive_msg.drive.speed = 0.45;
             RCLCPP_INFO(this->get_logger(),"Speed 0.45");
@@ -231,7 +249,7 @@ private:
         }
 
         ackermann_publisher_->publish(drive_msg);
-        stop();
+       // stop();
     }
 
     void stop()
@@ -244,7 +262,7 @@ private:
        
         stop_msg.header.stamp = this->now();
         stop_msg.header.frame_id = "/map";
-        stop_msg.drive.speed = 0.0;
+        stop_msg.drive.speed = 0.01;
         ackermann_publisher_->publish(stop_msg);
     }
     
