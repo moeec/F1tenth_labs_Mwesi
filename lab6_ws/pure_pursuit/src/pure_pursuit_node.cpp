@@ -1,3 +1,4 @@
+#include "spline.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -47,14 +48,45 @@ public:
         double heading;
 
         // reading in waypints data from csv
-
-        while (in.read_row(x, y, heading))
+        
+        while (in.read_row(x, y, heading)) 
         {
             xes.push_back(x);
             yes.push_back(y);
             headings.push_back(heading);
         }
-    }
+
+        tk::spline x_spline, y_spline;
+        std::vector<double> s;  // arc-length parameter for interpolation
+
+       // Create uniform parameter "s" based on distance between points
+       s.push_back(0.0);
+       for (size_t i = 1; i < xes.size(); ++i) 
+       {
+        double dx = xes[i] - xes[i - 1];
+        double dy = yes[i] - yes[i - 1];
+        s.push_back(s.back() + std::hypot(dx, dy));
+       }
+
+       // Create splines for x(s) and y(s)
+       x_spline.set_points(s, xes);
+       y_spline.set_points(s, yes);
+
+       // Resample smooth waypoints
+       std::vector<double> x_smooth;
+       std::vector<double> y_smooth;
+
+      double step = 0.5;  // distance between points
+      for (double dist = 0; dist <= s.back(); dist += step) 
+      {
+        x_smooth.push_back(x_spline(dist));
+        y_smooth.push_back(y_spline(dist));
+      }
+
+      // Replace xes and yes with smooth ones
+      xes = x_smooth;
+      yes = y_smooth;
+  }
 
 private:
     // Subscription to Odometry
