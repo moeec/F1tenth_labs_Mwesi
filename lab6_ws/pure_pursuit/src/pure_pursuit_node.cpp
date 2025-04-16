@@ -180,27 +180,32 @@ private:
             double cosy_cosp = 1.0 - 2.0 * (orientation_odom.y * orientation_odom.y + orientation_odom.z * orientation_odom.z);
             distance = sqrt((distance_next_x_wp * distance_next_x_wp) + (distance_next_y_wp * distance_next_y_wp));
             heading_current = std::atan2(siny_cosp, cosy_cosp);
-            if(RAD2DEG(heading_current) >  45)
-            {
-              steering_angle = std::atan2(distance_next_x_wp, distance_next_y_wp);
-              RCLCPP_INFO(this->get_logger(), "\n\033[1;31mHEADING_CURRENT: --------------------------------------------------<^>------------------------------------- %.2f\033[0m\n", RAD2DEG(heading_current));
-            }
-            else
-            {
-              steering_angle = std::atan2(distance_next_y_wp, distance_next_x_wp);
-            }
+            
+            // Convert waypoint position to vehicle coordinates
+            double dx = xes[i] - position_odom.x;
+            double dy = yes[i] - position_odom.y;
+
+           // Rotate waypoint position into vehicle frame
+           double local_x =  dx * cos(-heading_current) - dy * sin(-heading_current);
+           double local_y =  dx * sin(-heading_current) + dy * cos(-heading_current);
+
+           // Pure Pursuit steering angle calculation is always atan2(local_y, local_x)
+           steering_angle = atan2(local_y, local_x);            
+
+           RCLCPP_INFO(this->get_logger(), "\n\033[1;31mHEADING_CURRENT: --------------------------------------------------<^>------------------------------------- %.2f\033[0m\n", RAD2DEG(heading_current));
 //            RCLCPP_INFO(this->get_logger(),"Arctancheck: %.2f", RAD2DEG(steering_angle));
 //            RCLCPP_INFO(this->get_logger(),"Headingcheck: %.2f", RAD2DEG(heading_current));
            
            
-           if(abs(distance) < 2.8 && abs(distance) > 0 && abs(RAD2DEG(steering_angle)) < 100)
+           if(abs(distance) < 0.5 && abs(distance) > 0 && abs(RAD2DEG(steering_angle)) < 180)
            {
              RCLCPP_INFO(this->get_logger(), "\033[1;31m====================== Distance to next x: %.2f(CLOSE) ======================\033[0m", distance_next_x_wp);
              RCLCPP_INFO(this->get_logger(), "\033[1;31m====================== Distance to next y: %.2f(CLOSE) ======================\033[0m", distance_next_y_wp);
-             distance_next_x_wp = xes[i]-position_odom.x;
-             distance_next_y_wp = yes[i]-position_odom.y;
-             steering_angle = std::atan2(distance_next_y_wp, distance_next_x_wp);  // or your normal logic
-             heading_current = std::atan2(siny_cosp, cosy_cosp); 
+             //distance_next_x_wp = xes[i]-position_odom.x;
+             //distance_next_y_wp = yes[i]-position_odom.y;
+             //double siny_cosp = 2.0 * (orientation_odom.w * orientation_odom.z + orientation_odom.x * orientation_odom.y);
+             //double cosy_cosp = 1.0 - 2.0 * (orientation_odom.y * orientation_odom.y + orientation_odom.z * orientation_odom.z);
+             //heading_current = std::atan2(siny_cosp, cosy_cosp); 
              last_good_wp = i;
              RCLCPP_INFO(this->get_logger(),"callback: Angle to Waypoint: %.2f", RAD2DEG(steering_angle));
              RCLCPP_INFO(this->get_logger(),"callback: Heading Currently: %.2f", RAD2DEG(heading_current));
@@ -269,17 +274,18 @@ private:
         {
             drive_msg.drive.speed = 0.35;
             RCLCPP_INFO(this->get_logger(),"angle >20 degrees: %f", RAD2DEG(steering_angle));
+            RCLCPP_INFO(this->get_logger(),"abs angle >20 degrees: %f", abs_steering_angle);
         }
         else if (abs_steering_angle > DEG2RAD(5.0))
         {
-            drive_msg.drive.speed = 0.45;
+            drive_msg.drive.speed = 0.8;
             RCLCPP_INFO(this->get_logger(),"Speed 0.45");
         }
         else
         {
-          drive_msg.drive.speed = 0.62;
+          drive_msg.drive.speed = 1.0;
         }
-
+        drive_msg.drive.steering_angle = steering_angle;
         ackermann_publisher_->publish(drive_msg);
        // stop();
     }
