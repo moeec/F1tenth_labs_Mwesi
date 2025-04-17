@@ -31,7 +31,7 @@ public:
 
 
         marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);
-        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 10);
+        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1000);
 
         std::ifstream file_check("waypoints.csv");
         if (!file_check.is_open())
@@ -300,7 +300,8 @@ private:
        
         stop_msg.header.stamp = this->now();
         stop_msg.header.frame_id = "/map";
-        stop_msg.drive.speed = 0.01;
+        stop_msg.drive.speed = 0.00;
+        stop_msg.drive.steering_angle = steering_angle;
         ackermann_publisher_->publish(stop_msg);
     }
     
