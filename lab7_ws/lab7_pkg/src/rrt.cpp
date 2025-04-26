@@ -15,7 +15,7 @@ RRT::RRT(): rclcpp::Node("rrt_node"), gen((std::random_device())()) {
 
     // ROS publishers
     // TODO: create publishers for the the drive topic, and other topics you might need
-
+    ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1000);
     // ROS subscribers
     // TODO: create subscribers as you need
     string pose_topic = "ego_racecar/odom";
