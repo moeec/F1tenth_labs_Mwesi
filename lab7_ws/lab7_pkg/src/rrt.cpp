@@ -83,9 +83,33 @@ int RRT::nearest(std::vector<RRT_Node> &tree, std::vector<double> &sampled_point
     //     sampled_point (std::vector<double>): the sampled point in free space
     // Returns:
     //     nearest_node (int): index of nearest node on the tree
+    /*
+    Explored points V:
+    O1 (0, 0)      O2 (5, 0)      O3 (3, 4)
+
+    New sample x = (4, 1)
+
+    Compute distances:
+    ‣ ||x - O1|| = sqrt((4-0)² + (1-0)²) = sqrt(17)
+    ‣ ||x - O2|| = sqrt((4-5)² + (1-0)²) = sqrt(2)
+    ‣ ||x - O3|| = sqrt((4-3)² + (1-4)²) = sqrt(10)
+
+    argmin = O2 (closest)
+
+    So:
+    Nearest(G, x) = O2
+    */
 
     int nearest_node = 0;
     // TODO: fill in this method
+
+    for(size_t i = 0; i < &sampled_point.size(); i++)
+    {
+        &sampled_point[i];
+
+    // Code to be executed
+    }
+
 
     return nearest_node;
 }
