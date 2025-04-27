@@ -53,6 +53,11 @@ void RRT::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg) 
 
     // TODO: fill in the RRT main loop
 
+    /*for(size_t i = 0; i < &sampled_point.size(); i++)
+    {
+
+    }*/
+
 
 
     // path found as Path message
@@ -99,13 +104,14 @@ int RRT::nearest(std::vector<RRT_Node> &tree, std::vector<double> &sampled_point
     So:
     Nearest(G, x) = O2
     */
-
+    double squared_pow = std::pow(number, 2);
     int nearest_node = 0;
     // TODO: fill in this method
 
     for(size_t i = 0; i < &sampled_point.size(); i++)
     {
-        &sampled_point[i];
+        //compute distances
+        sqrt(std::pow(&sampled.x[i]-&tree.x[i],2)+(&sampled.y[i]-&tree.y[i])^2
 
     // Code to be executed
     }
