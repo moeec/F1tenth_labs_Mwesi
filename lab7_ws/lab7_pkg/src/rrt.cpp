@@ -111,7 +111,7 @@ int RRT::nearest(std::vector<RRT_Node> &tree, std::vector<double> &sampled_point
     for(size_t i = 0; i < &sampled_point.size(); i++)
     {
         //compute distances
-        sqrt(std::pow(&sampled.x[i]-&tree.x[i],2)+(&sampled.y[i]-&tree.y[i])^2
+        sqrt(std::pow(&sampled.x[i]-&tree.x[i],2)+std::pow(&sampled.y[i]-&tree.y[i],2))
 
     // Code to be executed
     }
