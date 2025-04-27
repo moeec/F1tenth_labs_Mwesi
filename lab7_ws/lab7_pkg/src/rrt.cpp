@@ -137,12 +137,15 @@ RRT_Node RRT::steer(RRT_Node &nearest_node, std::vector<double> &sampled_point) 
     RRT_Node new_node;
     // TODO: fill in this method
 
-    // Rotate waypoint position into vehicle frame
-    double local_x =  dx * cos(-heading_current) - dy * sin(-heading_current);
-    double local_y =  dx * sin(-heading_current) + dy * cos(-heading_current);
+    for(size_t i = 0; i < &sampled_point.size(); i++)
+        {
+            // Rotate waypoint position into vehicle frame
+            double local_x =  dx * cos(-heading_current) - dy * sin(-heading_current);
+            double local_y =  dx * sin(-heading_current) + dy * cos(-heading_current);
 
-    // Steering angle calculation is always atan2(local_y, local_x)
-    steering_angle = atan2(local_y, local_x);            
+            // Steering angle calculation is always atan2(local_y, local_x)
+            steering_angle = atan2(local_y, local_x);
+        }
 
 
     return new_node;
