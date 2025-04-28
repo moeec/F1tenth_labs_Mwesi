@@ -76,6 +76,13 @@ std::vector<double> RRT::sample() {
     // TODO: fill in this method
     // look up the documentation on how to use std::mt19937 devices with a distribution
     // the generator and the distribution is created for you (check the header file)
+
+    
+    // need to create area around me
+    x_dist = std::uniform_real_distribution<>(x_limit_bottom, x_limit_top);
+    y_dist = std::uniform_real_distribution<>(y_limit_right, y_limit_left);
+    sampled_point.push_back(x_dist(gen));
+    sampled_point.push_back(y_dist(gen));
     
     return sampled_point;
 }
