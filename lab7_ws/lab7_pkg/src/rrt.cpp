@@ -27,6 +27,19 @@ RRT::RRT(): rclcpp::Node("rrt_node"), gen((std::random_device())()) {
 
     // TODO: create a occupancy grid
 
+    /* 500 outer elements  (y-index) X 200 inner elements (x-index)
+      n = 500, so the outer vector size() and capacity() are both set to 500.
+      A temporary inner vector is built: 200 bool entries initialised to true.
+      C++ then copies that same inner vector 500 times (via std::vector copy-constructor) into the outer container.
+      occupancy_grids_prior.size() = 500
+      occupancy_grids_prior[i].size() 200 for any valid i
+      All 100 000 entries (500 x 200) start out as true.
+    */
+
+    previous_occupancy_grid = std::vector<std::vector<bool>> (500,
+    std::vector<bool>(200, true));
+
+
     RCLCPP_INFO(rclcpp::get_logger("RRT"), "%s\n", "Created new RRT Object.");
 }
 
@@ -111,14 +124,13 @@ int RRT::nearest(std::vector<RRT_Node> &tree, std::vector<double> &sampled_point
     So:
     Nearest(G, x) = O2
     */
-    double squared_pow = std::pow(number, 2);
     int nearest_node = 0;
     // TODO: fill in this method
 
-    for(size_t i = 0; i < &sampled_point.size(); i++)
+    for(size_t i = 0; i < sampled_point.size(); i++)
     {
         //compute distances
-        sqrt(std::pow(&sampled.x[i]-&tree.x[i],2)+std::pow(&sampled.y[i]-&tree.y[i],2))
+        sqrt(std::pow(sampled_point[i]-tree.x)+std::pow(sampled_point[i]-tree.y))
 
     // Code to be executed
     }
@@ -144,8 +156,12 @@ RRT_Node RRT::steer(RRT_Node &nearest_node, std::vector<double> &sampled_point) 
     RRT_Node new_node;
     // TODO: fill in this method
 
+   /* WIP
     for(size_t i = 0; i < &sampled_point.size(); i++)
         {
+            double dx = xes[i] - position_odom.x;
+            double dy = yes[i] - position_odom.y;
+
             // Rotate waypoint position into vehicle frame
             double local_x =  dx * cos(-heading_current) - dy * sin(-heading_current);
             double local_y =  dx * sin(-heading_current) + dy * cos(-heading_current);
@@ -153,7 +169,7 @@ RRT_Node RRT::steer(RRT_Node &nearest_node, std::vector<double> &sampled_point) 
             // Steering angle calculation is always atan2(local_y, local_x)
             steering_angle = atan2(local_y, local_x);
         }
-
+    */
 
     return new_node;
 }
