@@ -126,7 +126,7 @@ int RRT::nearest(std::vector<RRT_Node> &tree, std::vector<double> &sampled_point
     */
     int nearest_node = 0;
     // TODO: fill in this method
-    for(size_t i = 0; i < sampled_point.size(); i++)
+    for(size_t i = 0; i < tree.size(); i++)
     {
         //compute distances
 
