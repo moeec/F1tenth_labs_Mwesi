@@ -46,6 +46,14 @@ private:
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr pose_sub_;
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
     rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr waypoint_pub_ ;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr static_pub_ ;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr dynamic_pub_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr points_pub_;
+    
+
+
+    
 
     // random generator, use this
     std::mt19937 gen;
@@ -59,6 +67,11 @@ private:
     // updates occupancy grid
     void scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg);
 
+    // RRT parameters
+
+    std::vector<std::vector<bool>> current_occupancy_grid;
+    std::vector<std::vector<bool>> previous_occupancy_grid;
+
     // RRT methods
     std::vector<double> sample();
     int nearest(std::vector<RRT_Node> &tree, std::vector<double> &sampled_point);
@@ -70,6 +83,13 @@ private:
     double cost(std::vector<RRT_Node> &tree, RRT_Node &node);
     double line_cost(RRT_Node &n1, RRT_Node &n2);
     std::vector<int> near(std::vector<RRT_Node> &tree, RRT_Node &node);
+
+    // sample sapce aparameters
+
+    double x_limit_bottom;
+    double x_limit_top;
+    double y_limit_right;
+    double y_limit_left;
 
 };
 
