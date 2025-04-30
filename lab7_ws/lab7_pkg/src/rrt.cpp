@@ -16,6 +16,11 @@ RRT::RRT(): rclcpp::Node("rrt_node"), gen((std::random_device())()) {
     // ROS publishers
     // TODO: create publishers for the the drive topic, and other topics you might need
     ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1000);
+    waypoint_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("waypoint_marker", 1000);
+    static_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("static_marker", 1000);
+    dynamic_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("dynamic_marker", 1000);
+    points_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("points_marker", 1000);
+
     // ROS subscribers
     // TODO: create subscribers as you need
     string pose_topic = "ego_racecar/odom";
@@ -155,7 +160,7 @@ RRT_Node RRT::steer(RRT_Node &nearest_node, std::vector<double> &sampled_point) 
     // TODO: fill in this method
 
    /* WIP
-    for(size_t i = 0; i < &sampled_point.size(); i++)
+    for(size_t i = 0; i < nearest_node.size(); i++)
         {
             double dx = xes[i] - position_odom.x;
             double dy = yes[i] - position_odom.y;
