@@ -91,5 +91,8 @@ private:
     double y_limit_right;
     double y_limit_left;
 
+    double heading_current;
+    float steering_angle;
+
 };
 
