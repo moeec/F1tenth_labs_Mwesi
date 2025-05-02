@@ -69,6 +69,13 @@ void RRT::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg) 
     // tree as std::vector
     std::vector<RRT_Node> tree;
 
+    auto position_odom = pose_msg->pose.pose.position;
+    auto orientation_odom = pose_msg->pose.pose.orientation;
+
+    double siny_cosp = 2.0 * (orientation_odom.w * orientation_odom.z + orientation_odom.x * orientation_odom.y);
+    double cosy_cosp = 1.0 - 2.0 * (orientation_odom.y * orientation_odom.y + orientation_odom.z * orientation_odom.z);
+    heading_current = std::atan2(siny_cosp, cosy_cosp);
+
     // TODO: fill in the RRT main loop
 
     /*for(size_t i = 0; i < &sampled_point.size(); i++)
@@ -159,20 +166,16 @@ RRT_Node RRT::steer(RRT_Node &nearest_node, std::vector<double> &sampled_point) 
     RRT_Node new_node;
     // TODO: fill in this method
 
-   /* WIP
-    for(size_t i = 0; i < nearest_node.size(); i++)
-        {
-            double dx = xes[i] - position_odom.x;
-            double dy = yes[i] - position_odom.y;
+    double dx = sampled_point[0] - nearest_node.x;
+    double dy = sampled_point[1] - nearest_node.y;
 
-            // Rotate waypoint position into vehicle frame
-            double local_x =  dx * cos(-heading_current) - dy * sin(-heading_current);
-            double local_y =  dx * sin(-heading_current) + dy * cos(-heading_current);
+    // Rotate waypoint position into vehicle frame
+    double local_x =  dx * cos(-heading_current) - dy * sin(-heading_current);
+    double local_y =  dx * sin(-heading_current) + dy * cos(-heading_current);
+    double euclidean_distance = dx*cos(dy);
 
-            // Steering angle calculation is always atan2(local_y, local_x)
-            steering_angle = atan2(local_y, local_x);
-        }
-    */
+    // Steering angle calculation is always atan2(local_y, local_x)
+    steering_angle = atan2(local_y, local_x);
 
     return new_node;
 }
