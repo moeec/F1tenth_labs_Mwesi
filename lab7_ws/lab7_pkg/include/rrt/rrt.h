@@ -93,6 +93,8 @@ private:
 
     double heading_current;
     float steering_angle;
+    double x_current;
+    double y_current; 
 
 };
 
