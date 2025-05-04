@@ -56,6 +56,25 @@ void RRT::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_m
     //
 
     // TODO: update your occupancy grid
+
+    auto range_data_ = scan_msg->ranges;
+    auto angle_min_ = scan_msg->angle_min;
+    auto angle_increment_ = scan_msg->angle_increment;
+
+    current_occupancy_grid= previous_occupancy_grid;
+
+    double x_lidar = x_current * std::cos(heading_current);
+    double y_lidar = y_current * std::sin(heading_current);
+
+    for (unsigned int i = 0; i < range_data_.size(); i++) 
+    {
+        if (!std::isinf(range_data_[i]) && !std::isnan(range_data_[i])) 
+        {
+            double distance = range_data_[i];
+            double car_angle = angle_min_ + angle_increment_ * i;
+            double map_angle = car_angle + heading_current;
+        }
+    }
 }
 
 void RRT::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg) {
