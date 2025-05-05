@@ -57,14 +57,17 @@ void RRT::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_m
 
     // TODO: update your occupancy grid
 
+    RCLCPP_INFO(this->get_logger(), "scan");
+    RCLCPP_INFO(this->get_logger(), "heading: %.2f",heading_current);
+
     auto range_data_ = scan_msg->ranges;
     auto angle_min_ = scan_msg->angle_min;
     auto angle_increment_ = scan_msg->angle_increment;
 
     current_occupancy_grid= previous_occupancy_grid;
 
-    double x_lidar = x_current * std::cos(heading_current);
-    double y_lidar = y_current * std::sin(heading_current);
+    double lidar_pcx = x_current * std::cos(heading_current);
+    double lidar_pcy = y_current * std::sin(heading_current);
 
     for (unsigned int i = 0; i < range_data_.size(); i++) 
     {
@@ -73,6 +76,8 @@ void RRT::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_m
             double distance = range_data_[i];
             double car_angle = angle_min_ + angle_increment_ * i;
             double map_angle = car_angle + heading_current;
+            double obstacle_detect_x = lidar_pcx + distance * std::cos(map_angle);
+            double obstacle_detect_y = lidar_pcy + distance * std::sin(map_angle);
         }
     }
 }
@@ -84,6 +89,7 @@ void RRT::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg) 
     //    pose_msg (*PoseStamped): pointer to the incoming pose message
     // Returns:
     //
+    //RCLCPP_INFO(rclcpp::get_logger("RRT"), "nav_msgs");
 
     // tree as std::vector
     std::vector<RRT_Node> tree;
