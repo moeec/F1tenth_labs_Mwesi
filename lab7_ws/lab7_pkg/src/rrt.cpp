@@ -63,11 +63,12 @@ void RRT::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_m
     auto range_data_ = scan_msg->ranges;
     auto angle_min_ = scan_msg->angle_min;
     auto angle_increment_ = scan_msg->angle_increment;
+    double lidar_offset = 0.3;
 
     current_occupancy_grid= previous_occupancy_grid;
 
-    double lidar_pcx = x_current * std::cos(heading_current);
-    double lidar_pcy = y_current * std::sin(heading_current);
+    double lidar_pcx = (x_current + lidar_offset) * std::cos(heading_current);
+    double lidar_pcy = (y_current + lidar_offset) * std::sin(heading_current);
 
     for (unsigned int i = 0; i < range_data_.size(); i++) 
     {
