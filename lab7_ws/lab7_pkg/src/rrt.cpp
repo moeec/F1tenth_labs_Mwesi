@@ -79,6 +79,16 @@ void RRT::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_m
             double map_angle = car_angle + heading_current;
             double obstacle_detect_x = lidar_pcx + distance * std::cos(map_angle);
             double obstacle_detect_y = lidar_pcy + distance * std::sin(map_angle);
+
+            for (unsigned int j = 0; i < current_occupancy_grid.size(); i++)         // 500 rows
+            {
+                for (unsigned int j = 0; i < current_occupancy_grid[0].size(); i++)  // 200 columns
+                {
+                    current_occupancy_grid[i][j] = false;
+                }
+
+            }
+
         }
     }
 }
