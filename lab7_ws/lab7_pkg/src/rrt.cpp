@@ -84,13 +84,25 @@ void RRT::scan_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_m
             {
                 for (unsigned int j = 0; i < current_occupancy_grid[0].size(); i++)  // 200 columns
                 {
-                    current_occupancy_grid[i][j] = false;
+                    current_occupancy_grid[obstacle_detect_x ][obstacle_detect_y] = false;
                 }
 
             }
 
         }
     }
+
+    for (size_t i = 0; i < current_occupancy_grid.size(); ++i) 
+    {
+        std::string row_str;
+
+        for (size_t j = 0; j < current_occupancy_grid[i].size(); ++j) 
+        {
+            row_str += current_occupancy_grid[i][j] ? '#' : '.';  // '#' for occupied, '.' for free
+        }
+        RCLCPP_INFO(rclcpp::get_logger("occupancy_grid"), "%s", row_str.c_str());
+    }
+
 }
 
 void RRT::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg) {
@@ -119,9 +131,38 @@ void RRT::pose_callback(const nav_msgs::msg::Odometry::ConstSharedPtr pose_msg) 
 
     }*/
 
-
-
     // path found as Path message
+
+    visualization_msgs::msg::Marker marker;
+    marker.header.frame_id = "/map";
+    marker.header.stamp = rclcpp::Clock().now();
+ 
+    marker.ns = "dynamic_marker";
+    marker.id = 0;
+
+    marker.type = visualization_msgs::msg::Marker::SPHERE;
+    marker.action = visualization_msgs::msg::Marker::ADD;
+
+    marker.pose.position.x = 1;
+    marker.pose.position.y = 1;
+    marker.pose.position.z = 0;
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
+
+    marker.scale.x = 0.2;
+    marker.scale.y = 0.2;
+    marker.scale.z = 0.2;
+
+    marker.color.r = 0.0f;
+    marker.color.g = 1.0f;
+    marker.color.b = 0.0f;
+    marker.color.a = 1.0;   // Don't forget to set the alpha!
+
+    marker.lifetime = rclcpp::Duration(0,0);
+
+    dynamic_pub_->publish(marker);
 
 }
 
