@@ -1,235 +1,259 @@
 #include "rclcpp/rclcpp.hpp"
+#include <functional>
 #include <string>
 #include <vector>
 #include <algorithm>
 #include <cmath>
+
 #include "sensor_msgs/msg/laser_scan.hpp"
-#include "nav_msgs/msg/odometry.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
-#include <limits>  // For std::numeric_limits
 
-#define PI 3.1415927
-#define RAD2DEG(x) ((x)*180./PI)
-#define DEG2RAD(x) ((x)/180.0*PI)
+// ---- Constants / helpers (C++14 friendly) -----------------------------------
+constexpr double PI = 3.14159265358979323846;
 
-/// CHECK: include needed ROS msg type headers and libraries
+inline double rad2deg(double x) { return x * 180.0 / PI; }
+inline double deg2rad(double x) { return x / 180.0 * PI; }
 
-class ReactiveFollowGap : public rclcpp::Node 
+// ---- Node -------------------------------------------------------------------
+class ReactiveFollowGap : public rclcpp::Node
 {
-// Implement Reactive Follow Gap on the car
-// This is just a template, you are free to implement your own node!
-
 public:
-    ReactiveFollowGap() : Node("reactive_node")
-    {
-        /// TODO: create ROS subscribers and publishers
+  ReactiveFollowGap() : rclcpp::Node("reactive_node")
+  {
+    // Publishers (explicit QoS; tune as needed)
+    auto drive_qos  = rclcpp::QoS(10).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE)
+                                   .durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
+    auto marker_qos = rclcpp::QoS(10).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT)
+                                   .durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
 
-        ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1000);
-        marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("lidar_marker", 2);
+    ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(drive_topic_, drive_qos);
+    marker_pub_          = this->create_publisher<visualization_msgs::msg::Marker>(marker_topic_, marker_qos);
 
-        scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>("/scan", 3,[this](const sensor_msgs::msg::LaserScan::ConstSharedPtr msg) {
-        this->lidar_callback(msg);
-    }
+    // Subscription using a lambda (no std::bind / placeholders)
+    auto scan_qos = rclcpp::QoS(10).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT)
+                                .durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
+    scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
+        lidarscan_topic_, scan_qos,
+        [this](const sensor_msgs::msg::LaserScan::ConstSharedPtr msg) {
+          this->lidar_callback(msg);
+        });
+
+    RCLCPP_INFO(this->get_logger(), "ReactiveFollowGap node started (C++14).");
+  }
 
 private:
-    std::string lidarscan_topic = "/scan";
-    std::string drive_topic = "/drive";
-    double distance_;
-    double scan_min_angle_;
-    double scan_max_angle_;
-    double angle_increment_;
-    double min_angle_;
-    double max_angle_;
-    double current_angle_;
-    std::vector<double> ranges;
-    double largest_gap_drive_;
-    
+  // Topics
+  std::string lidarscan_topic_ = "/scan";
+  std::string drive_topic_     = "/drive";
+  std::string marker_topic_    = "lidar_marker";
 
-    /// ROS subscribers and publishers
-    rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
-    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
-    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
+  // ROS interfaces
+  rclcpp::Publisher<ackermann_msgs::msg::AckermannDriveStamped>::SharedPtr ackermann_publisher_;
+  rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr              scan_sub_;
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr             marker_pub_;
 
-    std::vector<float> preprocess_lidar(const std::vector<float> &ranges, float range_min, float range_max)
-    {   
-        // Preprocess the LiDAR scan array. Expert implementation includes:
-        // 1.Setting each value to the mean over some window
-        // 2.Rejecting high values (eg. > 3m)
+  // --- Helpers ---------------------------------------------------------------
 
-        std::vector<float> proc_ranges = ranges;
+  // Simple moving-average smoothing + range clipping
+  std::vector<float> preprocess_lidar(const std::vector<float> &ranges,
+                                      float range_min, float range_max)
+  {
+    std::vector<float> proc = ranges;
 
-        // Apply smoothing filter (moving average with a window size of 3)
-        for (size_t i = 1; i < ranges.size() - 1; ++i)
-        {
-            proc_ranges[i] = (ranges[i - 1] + ranges[i] + ranges[i + 1]) / 3.0;
-        }
-
-        // Reject high values
-        for (size_t i = 0; i < proc_ranges.size(); ++i)
-        {
-            if (std::isnan(proc_ranges[i]) || proc_ranges[i] > range_max || proc_ranges[i] < range_min)
-            {
-                proc_ranges[i] = range_max;
-            }
-        }
-
-        return proc_ranges;
+    if (ranges.size() >= 3) {
+      for (size_t i = 1; i + 1 < ranges.size(); ++i) {
+        proc[i] = (ranges[i - 1] + ranges[i] + ranges[i + 1]) / 3.0f;
+      }
     }
 
-    void set_safety_bubble(std::vector<float> &ranges, int closest_point_idx, int bubble_size)
-    {
-        int start_idx = std::max(0, closest_point_idx - bubble_size);
-        int end_idx = std::min(static_cast<int>(ranges.size()) - 1, closest_point_idx + bubble_size);
-
-        for (int i = start_idx; i <= end_idx; ++i)
-        {
-            ranges[i] = 0.0;
-        }
+    // Handle edges (optional): copy neighbors if available
+    if (!ranges.empty()) {
+      proc[0] = (ranges.size() > 1) ? (ranges[0] + ranges[1]) / 2.0f : ranges[0];
+      proc.back() = (ranges.size() > 1) ? (ranges[ranges.size()-2] + ranges.back()) / 2.0f : ranges.back();
     }
 
-    std::pair<int, int> find_max_gap(const std::vector<float> &ranges)
-    {   
-        int max_start = 0;
-        int max_end = 0;
-        int max_length = 0;
+    // Reject invalid/too-large/too-small values -> treat as open space (range_max)
+    for (size_t i = 0; i < proc.size(); ++i) {
+      float &v = proc[i];
+      if (std::isnan(v) || v > range_max || v < range_min) {
+        v = range_max;
+      }
+    }
+    return proc;
+  }
 
-        int current_start = -1;
-        int current_length = 0;
+  // Zero out (mark blocked) a region around the closest obstacle
+  void set_safety_bubble(std::vector<float> &ranges, int closest_idx, int bubble_size)
+  {
+    const int n = static_cast<int>(ranges.size());
+    const int start = std::max(0, closest_idx - bubble_size);
+    const int end   = std::min(n - 1, closest_idx + bubble_size);
+    for (int i = start; i <= end; ++i) {
+      ranges[i] = 0.0f;  // 0.0 == blocked in this convention
+    }
+  }
 
-        for (size_t i = 0; i < ranges.size(); ++i)
-        {
-            if (ranges[i] > 0.0)
-            {
-                if (current_start == -1)
-                {
-                    current_start = i;
-                }
-                current_length++;
-            }
-            else
-            {
-                if (current_length > max_length)
-                {
-                    max_length = current_length;
-                    max_start = current_start;
-                    max_end = i - 1;
-                }
-                current_start = -1;
-                current_length = 0;
-            }
+  // Find the longest contiguous run of > 0.0 values (the largest gap)
+  std::pair<int, int> find_max_gap(const std::vector<float> &ranges)
+  {
+    int max_s = 0, max_e = -1, max_len = 0;
+    int cur_s = -1, cur_len = 0;
+
+    for (int i = 0; i < static_cast<int>(ranges.size()); ++i) {
+      if (ranges[i] > 0.0f) {
+        if (cur_s == -1) cur_s = i;
+        ++cur_len;
+      } else {
+        if (cur_len > max_len) {
+          max_len = cur_len;
+          max_s = cur_s;
+          max_e = i - 1;
         }
+        cur_s = -1;
+        cur_len = 0;
+      }
+    }
+    // tail check
+    if (cur_len > max_len) {
+      max_len = cur_len;
+      max_s = cur_s;
+      max_e = static_cast<int>(ranges.size()) - 1;
+    }
+    if (max_len == 0) return std::pair<int,int>(0, -1); // no free gap
+    return std::pair<int,int>(max_s, max_e);
+  }
 
-        // Check at the end of the array
-        if (current_length > max_length)
-        {
-            max_length = current_length;
-            max_start = current_start;
-            max_end = ranges.size() - 1;
-        }
+  // Choose the "best" point in [start_idx, end_idx]; here: farthest range
+  int find_best_point(const std::vector<float> &ranges, int start_idx, int end_idx)
+  {
+    const int n = static_cast<int>(ranges.size());
+    if (n == 0) return 0;
 
-        return std::make_pair(max_start, max_end);
-    
+    // Clamp indices manually (C++14: no std::clamp)
+    if (start_idx < 0) start_idx = 0;
+    if (end_idx   < 0) end_idx   = 0;
+    if (start_idx >= n) start_idx = n - 1;
+    if (end_idx   >= n) end_idx   = n - 1;
+
+    if (start_idx > end_idx) {
+      return start_idx;  // degenerate range; best we can do
     }
 
-    int find_best_point(const std::vector<float> &ranges, int start_idx, int end_idx)
-    {   
-        // Start_i & end_i are start and end indicies of max-gap range, respectively
-        // Return index of best point in ranges
-	    // Naive: Choose the furthest point within ranges and go there
+    std::vector<float>::const_iterator it =
+        std::max_element(ranges.begin() + start_idx, ranges.begin() + end_idx + 1);
+    return static_cast<int>(std::distance(ranges.begin(), it));
+  }
 
-         // Choose the furthest point within the gap
-        auto max_elem_iter = std::max_element(ranges.begin() + start_idx, ranges.begin() + end_idx + 1);
-        
-        return std::distance(ranges.begin(), max_elem_iter);
+  // Publish a sphere marker at unit circle location for the chosen angle
+  void publish_marker(double angle)
+  {
+    visualization_msgs::msg::Marker marker;
+    marker.header.frame_id = "laser";                 // keep consistent with drive frame
+    marker.header.stamp    = this->now();
+    marker.ns              = "lidar_scan";
+    marker.id              = 0;
+    marker.type            = visualization_msgs::msg::Marker::SPHERE;
+    marker.action          = visualization_msgs::msg::Marker::ADD;
+
+    marker.pose.position.x = std::cos(angle);
+    marker.pose.position.y = std::sin(angle);
+    marker.pose.position.z = 1.0;
+
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
+
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.scale.z = 0.1;
+
+    marker.color.a = 1.0;
+    marker.color.r = 1.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
+
+    // Lifetime: 0.1s (builtin_interfaces/Duration fields)
+    marker.lifetime.sec     = 0;
+    marker.lifetime.nanosec = 100000000;
+
+    marker_pub_->publish(marker);
+  }
+
+  // --- Subscription callback -------------------------------------------------
+  void lidar_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg)
+  {
+    // 1) Preprocess
+    std::vector<float> proc_ranges =
+        preprocess_lidar(scan_msg->ranges, scan_msg->range_min, scan_msg->range_max);
+
+    // 2) Closest obstacle
+    int closest_idx = static_cast<int>(
+        std::distance(proc_ranges.begin(),
+                      std::min_element(proc_ranges.begin(), proc_ranges.end())));
+
+    // 3) Safety bubble (10 degrees around closest point)
+    int bubble_size = static_cast<int>(std::ceil(deg2rad(10.0) / scan_msg->angle_increment));
+    set_safety_bubble(proc_ranges, closest_idx, bubble_size);
+
+    // 4) Largest gap
+    std::pair<int,int> gap = find_max_gap(proc_ranges);
+    int gap_s = gap.first;
+    int gap_e = gap.second;
+
+    if (gap_e < gap_s) {
+      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
+                           "No free gap detected; sending stop.");
+      publish_stop();
+      return;
     }
 
-    void publish_marker(double angle) 
-    {
-        visualization_msgs::msg::Marker marker;
-        marker.header.frame_id = "/map";
-        marker.header.stamp = this->now();
-        marker.ns = "lidar_scan";
-        marker.id = 0;
-        marker.type = visualization_msgs::msg::Marker::SPHERE;
-        marker.action = visualization_msgs::msg::Marker::ADD;987.000000;
-        marker.pose.position.x = cos(angle);
-        marker.pose.position.y = sin(angle);
-        marker.pose.position.z = 1.0;
-        marker.pose.orientation.x = 0.0;
-        marker.pose.orientation.y = 0.0;
-        marker.pose.orientation.z = 0.0;
-        marker.pose.orientation.w = 1.0;
+    // 5) Best point (farthest) within gap
+    int best_idx = find_best_point(proc_ranges, gap_s, gap_e);
 
-        marker.scale.x = 0.1;
-        marker.scale.y = 0.1;
-        marker.scale.z = 0.1;
+    // 6) Index -> angle (radians in laser frame)
+    float steering_angle = scan_msg->angle_min + best_idx * scan_msg->angle_increment;
 
-        marker.color.a = 1.0;
-        marker.color.r = 1.0;
-        marker.color.g = 0.0;
-        marker.color.b = 0.0;
+    // 7) Visualize
+    publish_marker(steering_angle);
 
-        marker.lifetime = rclcpp::Duration(0.1);
+    // 8) Command
+    ackermann_msgs::msg::AckermannDriveStamped drive_msg;
+    drive_msg.header.stamp    = this->now();
+    drive_msg.header.frame_id = "laser";
 
-        marker_pub_->publish(marker);
+    drive_msg.drive.steering_angle = steering_angle;
+
+    // Speed scheduling by steering demand
+    float abs_angle = std::fabs(steering_angle);
+    if (abs_angle > deg2rad(20.0)) {
+      drive_msg.drive.speed = 0.20f;
+    } else if (abs_angle > deg2rad(10.0)) {
+      drive_msg.drive.speed = 0.35f;
+    } else {
+      drive_msg.drive.speed = 0.52f;
     }
 
-    void lidar_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg) 
-    {
-        // Preprocess the LiDAR scan
-        auto proc_ranges = preprocess_lidar(scan_msg->ranges, scan_msg->range_min, scan_msg->range_max);
+    ackermann_publisher_->publish(drive_msg);
+  }
 
-        // Find the closest point
-        int closest_point_idx = std::distance(proc_ranges.begin(), std::min_element(proc_ranges.begin(), proc_ranges.end())); 
+  void publish_stop()
+  {
+    ackermann_msgs::msg::AckermannDriveStamped msg;
+    msg.header.stamp    = this->now();
+    msg.header.frame_id = "laser";
+    msg.drive.steering_angle = 0.0f;
+    msg.drive.speed          = 0.0f;
+    ackermann_publisher_->publish(msg);
+  }
+};
 
-        // Create a safety bubble around the closest point
-        int bubble_size = static_cast<int>(std::ceil(DEG2RAD(23.7) / scan_msg->angle_increment)); // Bubble of 10 degrees
-        set_safety_bubble(proc_ranges, closest_point_idx, bubble_size);
-
-        // Find the largest gap
-        auto[max_start_idx, max_end_idx] = find_max_gap(proc_ranges);
-
-        // Find the best point in the largest gap
-        int best_point_idx = find_best_point(proc_ranges, max_start_idx, max_end_idx);
-
-        // Calculate the steering angle
-        float steering_angle = scan_msg->angle_min + best_point_idx * scan_msg->angle_increment;
-
-        // Publish the marker for visualization
-        publish_marker(steering_angle);
-
-        // Create and publish the drive message
-        ackermann_msgs::msg::AckermannDriveStamped drive_msg;
-        drive_msg.header.stamp = this->now();
-        drive_msg.header.frame_id = "laser";
-
-        // Set steering angle and speed
-        drive_msg.drive.steering_angle = steering_angle;
-
-        // Speed control based on steering angle
-        float abs_steering_angle = std::abs(steering_angle);
-        if (abs_steering_angle > DEG2RAD(20.0))
-        {
-            drive_msg.drive.speed = 0.2;
-        }
-        else if (abs_steering_angle > DEG2RAD(10.0))
-        {
-            drive_msg.drive.speed = 0.35;
-        }
-        else
-        {
-            drive_msg.drive.speed = 0.52;
-        }
-
-        ackermann_publisher_->publish(drive_msg);
-    }
-
-}; // End of class ReactiveFollowGap
-
-int main(int argc, char ** argv) {
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<ReactiveFollowGap>());
-    rclcpp::shutdown();
-    return 0;
+// ---- Main -------------------------------------------------------------------
+int main(int argc, char **argv)
+{
+  rclcpp::init(argc, argv);
+  rclcpp::spin(std::make_shared<ReactiveFollowGap>());
+  rclcpp::shutdown();
+  return 0;
 }
