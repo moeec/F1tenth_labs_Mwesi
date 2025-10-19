@@ -27,10 +27,9 @@ public:
 
         ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>("/drive", 1000);
         marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("lidar_marker", 2);
-        
 
-        scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
-            "/scan", 3, std::bind(&ReactiveFollowGap::lidar_callback, this, std::placeholders::_1));
+        scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>("/scan", 3,[this](const sensor_msgs::msg::LaserScan::ConstSharedPtr msg) {
+        this->lidar_callback(msg);
     }
 
 private:
