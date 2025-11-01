@@ -4,7 +4,6 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
-
 #include "sensor_msgs/msg/laser_scan.hpp"
 #include "ackermann_msgs/msg/ackermann_drive_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
@@ -15,6 +14,7 @@ constexpr double PI = 3.14159265358979323846;
 inline double rad2deg(double x) { return x * 180.0 / PI; }
 inline double deg2rad(double x) { return x / 180.0 * PI; }
 
+const float MAX_STEER = deg2rad(20.0f); // tune to your car
 // ---- Node -------------------------------------------------------------------
 class ReactiveFollowGap : public rclcpp::Node
 {
@@ -22,16 +22,16 @@ public:
   ReactiveFollowGap() : rclcpp::Node("reactive_node")
   {
     // Publishers (explicit QoS; tune as needed)
-    auto drive_qos  = rclcpp::QoS(10).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE)
+    auto drive_qos  = rclcpp::QoS(100).reliability(RMW_QOS_POLICY_RELIABILITY_RELIABLE)
                                    .durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
-    auto marker_qos = rclcpp::QoS(10).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT)
+    auto marker_qos = rclcpp::QoS(3).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT)
                                    .durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
 
     ackermann_publisher_ = this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(drive_topic_, drive_qos);
     marker_pub_          = this->create_publisher<visualization_msgs::msg::Marker>(marker_topic_, marker_qos);
 
     // Subscription using a lambda (no std::bind / placeholders)
-    auto scan_qos = rclcpp::QoS(10).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT)
+    auto scan_qos = rclcpp::QoS(100).reliability(RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT)
                                 .durability(RMW_QOS_POLICY_DURABILITY_VOLATILE);
     scan_sub_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
         lidarscan_topic_, scan_qos,
@@ -187,15 +187,39 @@ private:
     // 1) Preprocess
     std::vector<float> proc_ranges =
         preprocess_lidar(scan_msg->ranges, scan_msg->range_min, scan_msg->range_max);
+    
+    //for debugging
+    //for (int i = 0; i < static_cast<int>(proc_ranges.size()); ++i) 
+    //{  
+    //    RCLCPP_INFO(this->get_logger(), "1) Processed range at %.6f degrees, %.4f meters.", rad2deg(i*scan_msg->angle_increment), proc_ranges[i]);
+    //
 
     // 2) Closest obstacle
-    int closest_idx = static_cast<int>(
+    /* int closest_idx = static_cast<int>(
         std::distance(proc_ranges.begin(),
-                      std::min_element(proc_ranges.begin(), proc_ranges.end())));
+                      std::min_element(proc_ranges.begin(), proc_ranges.end()))); */
+                      
+    std::size_t closest_idx = 0;
+    float       closest_val = std::numeric_limits<float>::infinity();
+
+    if (!proc_ranges.empty()) {
+    	auto it = std::min_element(proc_ranges.begin(), proc_ranges.end());
+    	closest_idx = static_cast<std::size_t>(it - proc_ranges.begin());
+    	closest_val = *it;
+    	}
+
+    RCLCPP_INFO(this->get_logger(), "2) Closest Index %.6f.", closest_idx);
+    RCLCPP_INFO(this->get_logger(), "2) Closest Value %.6f.", closest_val);
+    //RCLCPP_INFO(this->get_logger(), "2) Calculation proc_ranges.begin() %d - Calculation proc_ranges.end() %d",proc_ranges.begin(), proc_ranges.end());
+    //RCLCPP_INFO(this->get_logger(), "2) Calculation std::min_element(proc_ranges.begin(), proc_ranges.end())) %.6f", std::min_element(proc_ranges.begin(), proc_ranges.end()));
+    
 
     // 3) Safety bubble (10 degrees around closest point)
-    int bubble_size = static_cast<int>(std::ceil(deg2rad(10.0) / scan_msg->angle_increment));
+
+    int bubble_size = static_cast<int>(std::ceil(deg2rad(20.0) / scan_msg->angle_increment));
     set_safety_bubble(proc_ranges, closest_idx, bubble_size);
+    
+    RCLCPP_INFO(this->get_logger(), "2) Bubble Size %.5f.", bubble_size);
 
     // 4) Largest gap
     std::pair<int,int> gap = find_max_gap(proc_ranges);
@@ -215,8 +239,8 @@ private:
     // 6) Index -> angle (radians in laser frame)
     float steering_angle = scan_msg->angle_min + best_idx * scan_msg->angle_increment;
 
-    // 7) Visualize
-    publish_marker(steering_angle);
+    // 7) Visualize in Rviz, for simultaion
+    // publish_marker(steering_angle);
 
     // 8) Command
     ackermann_msgs::msg::AckermannDriveStamped drive_msg;
@@ -235,7 +259,13 @@ private:
       drive_msg.drive.speed = 0.52f;
     }
 
-    ackermann_publisher_->publish(drive_msg);
+    drive_msg.drive.steering_angle = steering_angle;
+    
+   // manual clamp
+   if (steering_angle >  MAX_STEER) steering_angle =  MAX_STEER;
+   if (steering_angle < -MAX_STEER) steering_angle = -MAX_STEER;
+    
+   ackermann_publisher_->publish(drive_msg);
   }
 
   void publish_stop()
