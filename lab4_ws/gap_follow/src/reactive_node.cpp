@@ -210,16 +210,19 @@ private:
 
     RCLCPP_INFO(this->get_logger(), "2) Closest Index %.6f.", closest_idx);
     RCLCPP_INFO(this->get_logger(), "2) Closest Value %.6f.", closest_val);
-    //RCLCPP_INFO(this->get_logger(), "2) Calculation proc_ranges.begin() %d - Calculation proc_ranges.end() %d",proc_ranges.begin(), proc_ranges.end());
-    //RCLCPP_INFO(this->get_logger(), "2) Calculation std::min_element(proc_ranges.begin(), proc_ranges.end())) %.6f", std::min_element(proc_ranges.begin(), proc_ranges.end()));
     
 
     // 3) Safety bubble (10 degrees around closest point)
 
-    int bubble_size = static_cast<int>(std::ceil(deg2rad(20.0) / scan_msg->angle_increment));
+    int bubble_size = static_cast<int>(std::ceil(deg2rad(10.0) / scan_msg->angle_increment));
     set_safety_bubble(proc_ranges, closest_idx, bubble_size);
     
-    RCLCPP_INFO(this->get_logger(), "2) Bubble Size %.5f.", bubble_size);
+    //RCLCPP_INFO(this->get_logger(), "2) Bubble Size %.5f.", bubble_size);
+    //for debugging
+    //for (int i = 0; i < static_cast<int>(proc_ranges.size()); ++i) {  
+    //    RCLCPP_INFO(this->get_logger(), "1) Processed range With Bubble at %.6f degrees, %.4f meters.", rad2deg(i*scan_msg->angle_increment), proc_ranges[i]);
+    //    }
+    
 
     // 4) Largest gap
     std::pair<int,int> gap = find_max_gap(proc_ranges);
@@ -235,9 +238,13 @@ private:
 
     // 5) Best point (farthest) within gap
     int best_idx = find_best_point(proc_ranges, gap_s, gap_e);
+    
+    RCLCPP_INFO(this->get_logger(), "5) Best point (farthest) within gap %.6f.", best_idx);
 
     // 6) Index -> angle (radians in laser frame)
     float steering_angle = scan_msg->angle_min + best_idx * scan_msg->angle_increment;
+    
+     RCLCPP_INFO(this->get_logger(), "6) Steering Angle %.6f.", rad2deg(steering_angle));
 
     // 7) Visualize in Rviz, for simultaion
     // publish_marker(steering_angle);
@@ -259,7 +266,7 @@ private:
       drive_msg.drive.speed = 0.52f;
     }
 
-    drive_msg.drive.steering_angle = steering_angle;
+    drive_msg.drive.steering_angle = -steering_angle;
     
    // manual clamp
    if (steering_angle >  MAX_STEER) steering_angle =  MAX_STEER;
@@ -279,7 +286,7 @@ private:
   }
 };
 
-// ---- Main -------------------------------------------------------------------
+// ---- Main ------------------------------------------------------------------
 int main(int argc, char **argv)
 {
   rclcpp::init(argc, argv);
