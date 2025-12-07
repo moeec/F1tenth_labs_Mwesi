@@ -56,15 +56,16 @@ private:
   // --- Helpers ---------------------------------------------------------------
 
   // Simple moving-average smoothing + range clipping
-  std::vector<float> preprocess_lidar(const std::vector<float> &ranges,
-                                      float range_min, float range_max)
+  std::vector<float> preprocess_lidar(const std::vector<float> &ranges,float range_min, float range_max)
   {
+  //RCLCPP_INFO(this->get_logger(),"Inside Preprocessing function");
     std::vector<float> proc = ranges;
 
-    if (ranges.size() >= 3) {
+    if (ranges.size() >= 3) 
+    {
       for (size_t i = 1; i + 1 < ranges.size(); ++i) {
         proc[i] = (ranges[i - 1] + ranges[i] + ranges[i + 1]) / 3.0f;
-      }
+        }
     }
 
     // Handle edges (optional): copy neighbors if available
@@ -118,6 +119,7 @@ private:
     if (cur_len > max_len) {
       max_len = cur_len;
       max_s = cur_s;
+
       max_e = static_cast<int>(ranges.size()) - 1;
     }
     if (max_len == 0) return std::pair<int,int>(0, -1); // no free gap
@@ -185,14 +187,15 @@ private:
   void lidar_callback(const sensor_msgs::msg::LaserScan::ConstSharedPtr scan_msg)
   {
     // 1) Preprocess
-    std::vector<float> proc_ranges =
-        preprocess_lidar(scan_msg->ranges, scan_msg->range_min, scan_msg->range_max);
+    std::vector<float> proc_ranges = preprocess_lidar(scan_msg->ranges, scan_msg->range_min, scan_msg->range_max);
     
     //for debugging
-    //for (int i = 0; i < static_cast<int>(proc_ranges.size()); ++i) 
-    //{  
-    //    RCLCPP_INFO(this->get_logger(), "1) Processed range at %.6f degrees, %.4f meters.", rad2deg(i*scan_msg->angle_increment), proc_ranges[i]);
-    //
+    //for (int i = 0; i < static_cast<int>(proc_ranges.size()); ++i) {
+      //RCLCPP_INFO(this->get_logger(), "1) Preprocess %.6f %6f.", proc_ranges[i],rad2deg(scan_msg->angle_min + (i*scan_msg->angle_increment)));
+    //}
+ 
+  
+    
 
     // 2) Closest obstacle
     /* int closest_idx = static_cast<int>(
@@ -203,13 +206,23 @@ private:
     float       closest_val = std::numeric_limits<float>::infinity();
 
     if (!proc_ranges.empty()) {
-    	auto it = std::min_element(proc_ranges.begin(), proc_ranges.end());
-    	closest_idx = static_cast<std::size_t>(it - proc_ranges.begin());
+        RCLCPP_INFO(this->get_logger(), "2) Inside Closest Obstacle assessor----------------------------------------------------------------- .");
+        
+        //for (int i = 0; i < static_cast<int>(proc_ranges.size()); ++i) {
+        //RCLCPP_INFO(this->get_logger(), "2) Closest Obstacle %.6f %6f.", proc_ranges[i],rad2deg(scan_msg->angle_min + (i*scan_msg->angle_increment)));
+        //}
+    	auto it = std::min_element(proc_ranges.begin(), proc_ranges.end());  
+        //RCLCPP_INFO(this->get_logger(), "2) Closest Obstacle proc_ranges(): %.6f meters away.", *it);
+        //RCLCPP_INFO(this->get_logger(), "2) Closest Obstacle *it: %.6f meters away.", *it);
+        
+        closest_idx = static_cast<std::size_t>(it - proc_ranges.begin());
     	closest_val = *it;
+        //RCLCPP_INFO(this->get_logger(), "2) Closest value %6f.", closest_val);
     	}
 
-    RCLCPP_INFO(this->get_logger(), "2) Closest Index %.6f.", closest_idx);
-    RCLCPP_INFO(this->get_logger(), "2) Closest Value %.6f.", closest_val);
+    //RCLCPP_INFO(this->get_logger(), "2) Closest Index %zu.", closest_idx);
+    RCLCPP_INFO(this->get_logger(), "2) Closest at  %.6f.degrees", rad2deg(scan_msg->angle_min + (closest_idx*scan_msg->angle_increment)));   
+    RCLCPP_INFO(this->get_logger(), "2) Closest Value %.6f meters.", closest_val);
     
 
     // 3) Safety bubble (10 degrees around closest point)
@@ -240,11 +253,12 @@ private:
     int best_idx = find_best_point(proc_ranges, gap_s, gap_e);
     
     RCLCPP_INFO(this->get_logger(), "5) Best point (farthest) within gap %.6f.", best_idx);
+    RCLCPP_INFO(this->get_logger(), "5) best_idx range at %.6f degrees, %.4f meters.", rad2deg(scan_msg->angle_min+(best_idx*scan_msg->angle_increment)), proc_ranges[best_idx]);
 
     // 6) Index -> angle (radians in laser frame)
     float steering_angle = scan_msg->angle_min + best_idx * scan_msg->angle_increment;
     
-     RCLCPP_INFO(this->get_logger(), "6) Steering Angle %.6f.", rad2deg(steering_angle));
+     
 
     // 7) Visualize in Rviz, for simultaion
     // publish_marker(steering_angle);
@@ -256,23 +270,26 @@ private:
 
     drive_msg.drive.steering_angle = steering_angle;
 
+    RCLCPP_INFO(this->get_logger(), "6) Steering Angle %.6f.", rad2deg(steering_angle));
+
     // Speed scheduling by steering demand
     float abs_angle = std::fabs(steering_angle);
     if (abs_angle > deg2rad(20.0)) {
-      drive_msg.drive.speed = 0.20f;
+      //drive_msg.drive.speed = 0.10f;
+      RCLCPP_INFO(this->get_logger(), "6.5) STEERING Angle inside steer %.6f.\033[0m", rad2deg(steering_angle));
     } else if (abs_angle > deg2rad(10.0)) {
-      drive_msg.drive.speed = 0.35f;
+      //drive_msg.drive.speed = 0.35f;
     } else {
-      drive_msg.drive.speed = 0.52f;
+     // drive_msg.drive.speed = 0.52f;
     }
 
-    drive_msg.drive.steering_angle = -steering_angle;
+    drive_msg.drive.steering_angle = steering_angle;
     
    // manual clamp
-   if (steering_angle >  MAX_STEER) steering_angle =  MAX_STEER;
-   if (steering_angle < -MAX_STEER) steering_angle = -MAX_STEER;
+   //if (steering_angle >  MAX_STEER) steering_angle =  MAX_STEER;
+   //if (steering_angle < -MAX_STEER) steering_angle = -MAX_STEER;
     
-   ackermann_publisher_->publish(drive_msg);
+    ackermann_publisher_->publish(drive_msg);
   }
 
   void publish_stop()
@@ -280,7 +297,7 @@ private:
     ackermann_msgs::msg::AckermannDriveStamped msg;
     msg.header.stamp    = this->now();
     msg.header.frame_id = "laser";
-    msg.drive.steering_angle = 0.0f;
+    //msg.drive.steering_angle = 0.0f;
     msg.drive.speed          = 0.0f;
     ackermann_publisher_->publish(msg);
   }
