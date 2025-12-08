@@ -206,7 +206,7 @@ private:
     float       closest_val = std::numeric_limits<float>::infinity();
 
     if (!proc_ranges.empty()) {
-        RCLCPP_INFO(this->get_logger(), "2) Inside Closest Obstacle assessor----------------------------------------------------------------- .");
+        RCLCPP_INFO(this->get_logger(), "2) Inside Closest Obstacle assessor-----------------------------------------------------------------|");
         
         //for (int i = 0; i < static_cast<int>(proc_ranges.size()); ++i) {
         //RCLCPP_INFO(this->get_logger(), "2) Closest Obstacle %.6f %6f.", proc_ranges[i],rad2deg(scan_msg->angle_min + (i*scan_msg->angle_increment)));
@@ -221,15 +221,16 @@ private:
     	}
 
     //RCLCPP_INFO(this->get_logger(), "2) Closest Index %zu.", closest_idx);
-    RCLCPP_INFO(this->get_logger(), "2) Closest at  %.6f.degrees", rad2deg(scan_msg->angle_min + (closest_idx*scan_msg->angle_increment)));   
-    RCLCPP_INFO(this->get_logger(), "2) Closest Value %.6f meters.", closest_val);
+    RCLCPP_INFO(this->get_logger(), "2) Closest obstacle at %.6f.degrees %.6f meters away", rad2deg(scan_msg->angle_min + (closest_idx*scan_msg->angle_increment)), closest_val);   
     
 
     // 3) Safety bubble (10 degrees around closest point)
 
-    int bubble_size = static_cast<int>(std::ceil(deg2rad(10.0) / scan_msg->angle_increment));
-    set_safety_bubble(proc_ranges, closest_idx, bubble_size);
-    
+    int bubble_size = static_cast<int>(std::ceil(deg2rad(10.0)/scan_msg->angle_increment));
+    RCLCPP_INFO(this->get_logger(), "3) Safety Bubble is %.2f.", std::ceil(deg2rad(10.0)/scan_msg->angle_increment));
+    set_safety_bubble(proc_ranges, closest_idx, std::ceil(deg2rad(10.0)/scan_msg->angle_increment));
+    RCLCPP_INFO(this->get_logger(), "3) Safety Bubble after processing %.2f.", bubble_size);
+
     //RCLCPP_INFO(this->get_logger(), "2) Bubble Size %.5f.", bubble_size);
     //for debugging
     //for (int i = 0; i < static_cast<int>(proc_ranges.size()); ++i) {  
@@ -242,10 +243,13 @@ private:
     int gap_s = gap.first;
     int gap_e = gap.second;
 
+    RCLCPP_INFO(this->get_logger(), "4) Largest Gap: gap_s %.2f gap_e %.2f.", gap_s, gap_e);
+    
     if (gap_e < gap_s) {
-      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
-                           "No free gap detected; sending stop.");
+      RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000, "No free gap detected; sending stop.");
       publish_stop();
+      
+
       return;
     }
 
@@ -268,19 +272,19 @@ private:
     drive_msg.header.stamp    = this->now();
     drive_msg.header.frame_id = "laser";
 
-    drive_msg.drive.steering_angle = steering_angle;
+    drive_msg.drive.steering_angle = -steering_angle;
 
     RCLCPP_INFO(this->get_logger(), "6) Steering Angle %.6f.", rad2deg(steering_angle));
 
     // Speed scheduling by steering demand
     float abs_angle = std::fabs(steering_angle);
     if (abs_angle > deg2rad(20.0)) {
-      //drive_msg.drive.speed = 0.10f;
+      drive_msg.drive.speed = 0.10f;
       RCLCPP_INFO(this->get_logger(), "6.5) STEERING Angle inside steer %.6f.\033[0m", rad2deg(steering_angle));
     } else if (abs_angle > deg2rad(10.0)) {
-      //drive_msg.drive.speed = 0.35f;
+      drive_msg.drive.speed = 0.35f;
     } else {
-     // drive_msg.drive.speed = 0.52f;
+      drive_msg.drive.speed = 0.52f;
     }
 
     drive_msg.drive.steering_angle = steering_angle;
