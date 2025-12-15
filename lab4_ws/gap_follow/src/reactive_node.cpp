@@ -10,11 +10,10 @@
 
 // ---- Constants / helpers (C++14 friendly) -----------------------------------
 constexpr double PI = 3.14159265358979323846;
-
 inline double rad2deg(double x) { return x * 180.0 / PI; }
 inline double deg2rad(double x) { return x / 180.0 * PI; }
-
 const float MAX_STEER = deg2rad(20.0f); // tune to your car
+
 // ---- Node -------------------------------------------------------------------
 class ReactiveFollowGap : public rclcpp::Node
 {
@@ -98,32 +97,39 @@ private:
   // Find the longest contiguous run of > 0.0 values (the largest gap)
   std::pair<int, int> find_max_gap(const std::vector<float> &ranges)
   {
+
+  /* max_s, max_e = start/end indices of the best (longest) gap so far
+     max_len = length of that best gap
+     cur_s = start index of the current gap while scanning
+     cur_len = length of the current gap*/
+
     int max_s = 0, max_e = -1, max_len = 0;
-    int cur_s = -1, cur_len = 0;
+    int cur_s = -1, cur_len = 0; 
 
     for (int i = 0; i < static_cast<int>(ranges.size()); ++i) {
        //RCLCPP_INFO(this->get_logger(), "3) Max gap range value %.6f meters away", ranges[i]);
       if (ranges[i] > 0.0f) {
         if (cur_s == -1) cur_s = i;
-        RCLCPP_INFO(this->get_logger(), "3-1) Max gap *if(cur_s == -1) cur_s = i* pair(s,e) %i, %i", max_s, max_e);
+        //RCLCPP_INFO(this->get_logger(), "3-1) MG !!!!FREE SPACE!!!! pair(s,e) %i, %i and range is %.2f", max_s, max_e,ranges[i]);
         ++cur_len;
-        RCLCPP_INFO(this->get_logger(), "3-1) Max gap *++curlen* pair(s,e), %i", cur_len);
+        //RCLCPP_INFO(this->get_logger(), "3-1) MG - Index, %i", i);
+        //RCLCPP_INFO(this->get_logger(), "3-1) MG - Current Start Index, %i", i);
       } else {
         if (cur_len > max_len) {
           max_len = cur_len;
           max_s = cur_s;
           max_e = i - 1;
-          RCLCPP_INFO(this->get_logger(), "3-2)(cur_len>max_len) Max gap pair(s,e) %i, %i", max_s, max_e);
+          //RLCPP_INFO(this->get_logger(), "3-2)!!!!CLOSING UP GAP DISCOVERY!!!!!(cur_len>max_len) Max gap pair(s,e) %i, %i, Cuurent Start %i", max_s, max_e, cur_s);
         }
+        //RCLCPP_INFO(this->get_logger(), "3-3)!!!!NO FREE SPACE!!!!!!!----------->Max gap pair(s,e) %i, %i", max_s, max_e);
         cur_s = -1;
         cur_len = 0;
       }
     }
-    // tail check
+    // final tail check just incase vector ended in a gap
     if (cur_len > max_len) {
       max_len = cur_len;
       max_s = cur_s;
-
       max_e = static_cast<int>(ranges.size()) - 1;
       RCLCPP_INFO(this->get_logger(), "3-3)(tail check) Max gap pair(s,e) %i, %i", max_s, max_e);
     }
@@ -142,6 +148,8 @@ private:
     const int n = static_cast<int>(ranges.size());
     if (n == 0) return 0;
 
+    RCLCPP_INFO(this->get_logger(), "4) Best (begin) Point Start Index, End Index %i, %i", start_idx, end_idx);
+
     // Clamp indices manually (C++14: no std::clamp)
     if (start_idx < 0) start_idx = 0;
     if (end_idx   < 0) end_idx   = 0;
@@ -149,11 +157,14 @@ private:
     if (end_idx   >= n) end_idx   = n - 1;
 
     if (start_idx > end_idx) {
+      RCLCPP_INFO(this->get_logger(), "4) Best (end) Point Start Index, %i", start_idx);
       return start_idx;  // degenerate range; best we can do
+  
     }
 
     std::vector<float>::const_iterator it =
         std::max_element(ranges.begin() + start_idx, ranges.begin() + end_idx + 1);
+        RCLCPP_INFO(this->get_logger(), "4) Best (end2) Point Start Index, %i", static_cast<int>(std::distance(ranges.begin(), it)));
     return static_cast<int>(std::distance(ranges.begin(), it));
   }
 
@@ -252,8 +263,8 @@ private:
     int gap_s = gap.first;
     int gap_e = gap.second;
 
-    double gap_start_angle = scan_msg->angle_min + gap_s * scan_msg->angle_increment;
-    double gap_end_angle = scan_msg->angle_min + gap_e * scan_msg->angle_increment;
+    double gap_start_angle = scan_msg->angle_min + (gap_s * scan_msg->angle_increment);
+    double gap_end_angle = scan_msg->angle_min + (gap_e * scan_msg->angle_increment);
     RCLCPP_INFO(this->get_logger(), "4)Max gap found: start=%d end=%d length=%d, start angle %d, end angle %d", gap_s, gap_e, gap_e - gap_s + 1, gap_start_angle, gap_end_angle);
     
     
@@ -267,7 +278,7 @@ private:
     // 5) Best point (farthest) within gap
     int best_idx = find_best_point(proc_ranges, gap_s, gap_e);
     
-    RCLCPP_INFO(this->get_logger(), "5) Best point (farthest) within gap %.6f.", best_idx);
+    RCLCPP_INFO(this->get_logger(), "5) Best Index within gap %i.", best_idx);
     RCLCPP_INFO(this->get_logger(), "5) best_idx at %.6f degrees, %.4f meters.", rad2deg(scan_msg->angle_min+(best_idx*scan_msg->angle_increment)), proc_ranges[best_idx]);
 
     // 6) Index -> angle (radians in laser frame)
@@ -291,20 +302,20 @@ private:
     float abs_angle = std::fabs(steering_angle);
     if (abs_angle > deg2rad(20.0)) {
       drive_msg.drive.speed = 0.10f;
-      RCLCPP_INFO(this->get_logger(), "6.5) STEERING Angle inside steer %.6f.\033[0m", rad2deg(steering_angle));
     } else if (abs_angle > deg2rad(10.0)) {
-      drive_msg.drive.speed = 0.35f;
+      drive_msg.drive.speed = 0.15f;
     } else {
-      drive_msg.drive.speed = 0.52f;
+      drive_msg.drive.speed = 0.20f;
     }
 
-    //drive_msg.drive.steering_angle = steering_angle;
+    RCLCPP_INFO(this->get_logger(), "6.5) Steering Angle %.6f.\033[0m", rad2deg(steering_angle));
+    drive_msg.drive.steering_angle = steering_angle;
     
    // manual clamp
    //if (steering_angle >  MAX_STEER) steering_angle =  MAX_STEER;
    //if (steering_angle < -MAX_STEER) steering_angle = -MAX_STEER;
     
-    //ackermann_publisher_->publish(drive_msg);
+    ackermann_publisher_->publish(drive_msg);
   }
 
   void publish_stop()
