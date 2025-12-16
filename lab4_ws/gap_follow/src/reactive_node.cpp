@@ -158,8 +158,7 @@ private:
 
     if (start_idx > end_idx) {
       RCLCPP_INFO(this->get_logger(), "4) Best (end) Point Start Index, %i", start_idx);
-      return start_idx;  // degenerate range; best we can do
-  
+      return start_idx;  // degenerate range; best we can do 
     }
 
     std::vector<float>::const_iterator it =
@@ -257,7 +256,7 @@ private:
     //for (int i = 0; i < static_cast<int>(proc_ranges.size()); ++i) {  
     //    RCLCPP_INFO(this->get_logger(), "1) Processed range With Bubble at %.6f degrees, %.4f meters.", rad2deg(i*scan_msg->angle_increment), proc_ranges[i]);
     //    }
-    
+
     // 4) Largest gap
     std::pair<int,int> gap = find_max_gap(proc_ranges);
     int gap_s = gap.first;
@@ -266,8 +265,7 @@ private:
     double gap_start_angle = scan_msg->angle_min + (gap_s * scan_msg->angle_increment);
     double gap_end_angle = scan_msg->angle_min + (gap_e * scan_msg->angle_increment);
     RCLCPP_INFO(this->get_logger(), "4)Max gap found: start=%d end=%d length=%d, start angle %d, end angle %d", gap_s, gap_e, gap_e - gap_s + 1, gap_start_angle, gap_end_angle);
-    
-    
+
     if (gap_e < gap_s) {
       RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000, "No free gap detected; sending stop.");
       publish_stop();
@@ -277,31 +275,28 @@ private:
 
     // 5) Best point (farthest) within gap
     int best_idx = find_best_point(proc_ranges, gap_s, gap_e);
-    
+
     RCLCPP_INFO(this->get_logger(), "5) Best Index within gap %i.", best_idx);
     RCLCPP_INFO(this->get_logger(), "5) best_idx at %.6f degrees, %.4f meters.", rad2deg(scan_msg->angle_min+(best_idx*scan_msg->angle_increment)), proc_ranges[best_idx]);
 
     // 6) Index -> angle (radians in laser frame)
     float steering_angle = scan_msg->angle_min + best_idx * scan_msg->angle_increment;
-    
-     
 
     // 7) Visualize in Rviz, for simultaion
-    // publish_marker(steering_angle);
+    publish_marker(steering_angle);
 
     // 8) Command
     ackermann_msgs::msg::AckermannDriveStamped drive_msg;
     drive_msg.header.stamp    = this->now();
     drive_msg.header.frame_id = "laser";
 
-    drive_msg.drive.steering_angle = -steering_angle;
-
-    RCLCPP_INFO(this->get_logger(), "6) Steering Angle %.6f.", rad2deg(steering_angle));
+    drive_msg.drive.steering_angle = steering_angle;
 
     // Speed scheduling by steering demand
     float abs_angle = std::fabs(steering_angle);
     if (abs_angle > deg2rad(20.0)) {
       drive_msg.drive.speed = 0.10f;
+      RCLCPP_INFO(this->get_logger(), "6) Steering Angle %.6f.", rad2deg(steering_angle));
     } else if (abs_angle > deg2rad(10.0)) {
       drive_msg.drive.speed = 0.15f;
     } else {
@@ -310,7 +305,7 @@ private:
 
     RCLCPP_INFO(this->get_logger(), "6.5) Steering Angle %.6f.\033[0m", rad2deg(steering_angle));
     drive_msg.drive.steering_angle = steering_angle;
-    
+
    // manual clamp
    //if (steering_angle >  MAX_STEER) steering_angle =  MAX_STEER;
    //if (steering_angle < -MAX_STEER) steering_angle = -MAX_STEER;
