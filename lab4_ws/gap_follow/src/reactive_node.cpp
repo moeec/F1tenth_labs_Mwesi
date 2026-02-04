@@ -295,12 +295,12 @@ private:
     // Speed scheduling by steering demand
     float abs_angle = std::fabs(steering_angle);
     if (abs_angle > deg2rad(20.0)) {
-      drive_msg.drive.speed = 0.10f;
+      drive_msg.drive.speed = 0.5f;
       RCLCPP_INFO(this->get_logger(), "6) Steering Angle %.6f.", rad2deg(steering_angle));
     } else if (abs_angle > deg2rad(10.0)) {
-      drive_msg.drive.speed = 0.15f;
+      drive_msg.drive.speed = 0.6f;
     } else {
-      drive_msg.drive.speed = 0.20f;
+      drive_msg.drive.speed = 0.8f;
     }
 
     RCLCPP_INFO(this->get_logger(), "6.5) Steering Angle %.6f.\033[0m", rad2deg(steering_angle));
